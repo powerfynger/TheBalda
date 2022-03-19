@@ -13,7 +13,7 @@ unsigned int g_shadow_buf_size = 0;
 void con_init(short width, short height)
 {
 	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
-	PCONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+	PCONSOLE_SCREEN_BUFFER_INFO csbiInfo; // sdasaddas
 	SMALL_RECT srctWindow;
 	COORD c;
 
