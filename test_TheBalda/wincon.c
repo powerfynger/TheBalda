@@ -13,6 +13,8 @@ unsigned int g_shadow_buf_size = 0;
 void con_init(short width, short height)
 {
 	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+	PCONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+	SMALL_RECT srctWindow;
 	COORD c;
 
 	setlocale(LC_ALL, "Russian");
@@ -25,8 +27,10 @@ void con_init(short width, short height)
 
 	g_shadow_buf = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE,
 			0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-
-	SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), c);
+	GetConsoleScreenBufferInfo(h, csbiInfo);
+	srctWindow = csbiInfo->srWindow;
+	SetConsoleScreenBufferSize(GetStdHandle(h), c);
+	SetConsoleWindowInfo(GetStdHandle(h), FALSE, &srctWindow);
 }
 
 short con_width()
