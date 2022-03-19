@@ -3,6 +3,6 @@
 
 int main() {
 
-	printf("asdfdasdsa");
+	printf("starting");
 	return 0;
 }
