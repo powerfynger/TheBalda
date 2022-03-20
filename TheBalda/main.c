@@ -4,7 +4,7 @@
 
 
 int main() {
-
+	printf("xyj");
 	con_init(100, 100);
 	system("pause");
 	return 0;
