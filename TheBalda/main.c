@@ -3,6 +3,6 @@
 
 int main() {
 
-	printf("startasding");
+	printf("υσι");
 	return 0;
 }
