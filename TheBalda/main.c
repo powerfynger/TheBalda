@@ -149,7 +149,7 @@ void main_menu()
 
 void settings_menu()
 {
-	const char* menu_items[] = { "Настройки" ,"Сложность", "Первый ход", "Назад"};
+	const char* menu_items[] = { "Настройки" ,"Сложность", "Первый ход", "Назад или ESC"};
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	short clr_bg = CON_CLR_BLACK;
@@ -263,7 +263,7 @@ void settings_menu()
 
 void difficulty_selection()
 {
-	const char* menu_items[] = { "Сложность" ,"Лёгкая", "Средняя", "Сложная" ,"Назад"};
+	const char* menu_items[] = { "Сложность" ,"Лёгкая", "Средняя", "Сложная" ,"Назад или ESC"};
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	short clr_bg = CON_CLR_BLACK;
@@ -380,7 +380,7 @@ void difficulty_selection()
 }
 
 void first_turn_selection() {
-	const char* menu_items[] = { "Первый ход за. . ." ,"Человек", "Компьютер" ,"Назад" };
+	const char* menu_items[] = { "Первый ход за. . ." ,"Человек", "Компьютер" ,"Назад или ESC" };
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	short clr_bg = CON_CLR_BLACK;
