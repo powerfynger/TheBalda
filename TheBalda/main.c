@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+п»ї#define _CRT_SECURE_NO_WARNINGS
 #include "wincon.h"
 #include <stdio.h>
 #include <string.h>
@@ -13,17 +13,18 @@ void settings_menu();
 void difficulty_selection();
 void first_turn_selection();
 
-int difficult = 1; //сложность изначально "лёгкий"
+int difficult = 1; //СЃР»РѕР¶РЅРѕСЃС‚СЊ РёР·РЅР°С‡Р°Р»СЊРЅРѕ "Р»С‘РіРєРёР№"
 int turn = 1;
 
 
 int main()
 {
-	// Инициализируется консоль, скрывается курсор
-	con_init(80, 95);
+	// РРЅРёС†РёР°Р»РёР·РёСЂСѓРµС‚СЃСЏ РєРѕРЅСЃРѕР»СЊ, СЃРєСЂС‹РІР°РµС‚СЃСЏ РєСѓСЂСЃРѕСЂ
+	con_init(100, 25);
+	// system("mode con cols=100 lines=25");
 	show_cursor(0);
 
-	// Запуск главного меню
+	// Р—Р°РїСѓСЃРє РіР»Р°РІРЅРѕРіРѕ РјРµРЅСЋ
 	main_menu();
 
 	return 0;
@@ -32,10 +33,10 @@ int main()
 
 
 
-// Поддержка главного меню
+// РџРѕРґРґРµСЂР¶РєР° РіР»Р°РІРЅРѕРіРѕ РјРµРЅСЋ
 void main_menu()
 {
-	const char* menu_items[] = {"Балда" ,"Игра", "Настройки", "Таблица рекордов", "О программе", "Выход"};
+	const char* menu_items[] = {"Р‘Р°Р»РґР°" ,"РРіСЂР°", "РќР°СЃС‚СЂРѕР№РєРё", "РўР°Р±Р»РёС†Р° СЂРµРєРѕСЂРґРѕРІ", "Рћ РїСЂРѕРіСЂР°РјРјРµ", "Р’С‹С…РѕРґ"};
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	short clr_bg = CON_CLR_BLACK;
@@ -47,22 +48,24 @@ void main_menu()
 		int top = 2;
 		int b;
 
-		// Заблокировать отрисовку
+		// Р—Р°Р±Р»РѕРєРёСЂРѕРІР°С‚СЊ РѕС‚СЂРёСЃРѕРІРєСѓ
 		con_draw_lock();
 
-		// Очистка экрана
+		// РћС‡РёСЃС‚РєР° СЌРєСЂР°РЅР°
 		con_set_color(clr_font, clr_bg);
 		clrscr();
-		// Цикл отрисовывает кнопку
+		// Р¦РёРєР» РѕС‚СЂРёСЃРѕРІС‹РІР°РµС‚ РєРЅРѕРїРєСѓ
 		for (b = 0; b < menu_items_count; b++)
 		{
-			short btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
+			short btn_bg = clr_bg; // РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ С„РѕРЅ РєРЅРѕРїРєРё - РєР°Рє С„РѕРЅ СЌРєСЂР°РЅР°
 			if (b == menu_active_idx)
-				btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
+				btn_bg = clr_bg_active; // Р•СЃР»Рё РєРЅРѕРїРєР° Р°РєС‚РёРІРЅР° - С‚Рѕ СЂРёСЃСѓРµС‚СЃСЏ РґСЂСѓРіРёРј С†РІРµС‚РѕРј
 			gotoxy(left, top);
 			con_set_color(clr_font, btn_bg);
-
-			printf("====================");
+			if (b == 0)
+				printf("~~~~~~~~~~~~~~~~~~~~");
+			else
+				printf("====================");
 			top++;
 			gotoxy(left, top);
 			printf("|                   ");
@@ -75,20 +78,23 @@ void main_menu()
 			printf("|");
 			top++;
 			gotoxy(left, top);
-			printf("====================");
+			if (b == 0)
+				printf("~~~~~~~~~~~~~~~~~~~~");
+			else
+				printf("====================");
 			top += 2;
 		}
 
-		// Данные подготовлены, вывести на экран
+		// Р”Р°РЅРЅС‹Рµ РїРѕРґРіРѕС‚РѕРІР»РµРЅС‹, РІС‹РІРµСЃС‚Рё РЅР° СЌРєСЂР°РЅ
 		con_draw_release();
 
 
-		while (!key_is_pressed()) // Если пользователь нажимает кнопку
+		while (!key_is_pressed()) // Р•СЃР»Рё РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅР°Р¶РёРјР°РµС‚ РєРЅРѕРїРєСѓ
 		{
 			int code = key_pressed_code();
-			if (code == KEY_UP) // Если это стрелка вверх
+			if (code == KEY_UP) // Р•СЃР»Рё СЌС‚Рѕ СЃС‚СЂРµР»РєР° РІРІРµСЂС…
 			{
-				// То переход к верхнему пункту (если это возможно)
+				// РўРѕ РїРµСЂРµС…РѕРґ Рє РІРµСЂС…РЅРµРјСѓ РїСѓРЅРєС‚Сѓ (РµСЃР»Рё СЌС‚Рѕ РІРѕР·РјРѕР¶РЅРѕ)
 				if (menu_active_idx > 1)
 				{
 					menu_active_idx--;
@@ -100,9 +106,9 @@ void main_menu()
 					break;
 				}
 			}
-			else if (code == KEY_DOWN) // Если стрелка вниз
+			else if (code == KEY_DOWN) // Р•СЃР»Рё СЃС‚СЂРµР»РєР° РІРЅРёР·
 			{
-				// То переход к нижнему пункту (если это возможно)
+				// РўРѕ РїРµСЂРµС…РѕРґ Рє РЅРёР¶РЅРµРјСѓ РїСѓРЅРєС‚Сѓ (РµСЃР»Рё СЌС‚Рѕ РІРѕР·РјРѕР¶РЅРѕ)
 				if (menu_active_idx + 1 < menu_items_count)
 				{
 					menu_active_idx++;
@@ -115,18 +121,18 @@ void main_menu()
 				}
 			}
 			else if (code == KEY_ESC || code == 'q' || code == 'Q' ||
-				code == (unsigned char)'й' || code == (unsigned char)'Й') // ESC или 'q' - выход
+				code == (unsigned char)'Р№' || code == (unsigned char)'Р™') // ESC РёР»Рё 'q' - РІС‹С…РѕРґ
 			{
 				return;
 			}
-			else if (code == KEY_ENTER) // Нажата кнопка Enter
+			else if (code == KEY_ENTER) // РќР°Р¶Р°С‚Р° РєРЅРѕРїРєР° Enter
 			{
-				if (menu_active_idx == 5) // Выбран последний пункт - это выход
+				if (menu_active_idx == 5) // Р’С‹Р±СЂР°РЅ РїРѕСЃР»РµРґРЅРёР№ РїСѓРЅРєС‚ - СЌС‚Рѕ РІС‹С…РѕРґ
 					return;
 
 				//if (menu_active_idx == 0)
 
-				if (menu_active_idx == 2) // Выбран пункт "настройки"
+				if (menu_active_idx == 2) // Р’С‹Р±СЂР°РЅ РїСѓРЅРєС‚ "РЅР°СЃС‚СЂРѕР№РєРё"
 					settings_menu();
 				//if (menu_active_idx == 1)
 
@@ -136,11 +142,11 @@ void main_menu()
 			}
 
 
-			pause(40); // Небольная пауза (чтобы не загружать процессор)
+			pause(40); // РќРµР±РѕР»СЊРЅР°СЏ РїР°СѓР·Р° (С‡С‚РѕР±С‹ РЅРµ Р·Р°РіСЂСѓР¶Р°С‚СЊ РїСЂРѕС†РµСЃСЃРѕСЂ)
 		} // while (!key_is_pressed())
 
 
-		// "Съедается" оставшийся ввод
+		// "РЎСЉРµРґР°РµС‚СЃСЏ" РѕСЃС‚Р°РІС€РёР№СЃСЏ РІРІРѕРґ
 		while (key_is_pressed())
 			key_pressed_code();
 
@@ -149,7 +155,7 @@ void main_menu()
 
 void settings_menu()
 {
-	const char* menu_items[] = { "Настройки" ,"Сложность", "Первый ход", "Назад или ESC"};
+	const char* menu_items[] = { "РќР°СЃС‚СЂРѕР№РєРё" ,"РЎР»РѕР¶РЅРѕСЃС‚СЊ", "РџРµСЂРІС‹Р№ С…РѕРґ", "РќР°Р·Р°Рґ РёР»Рё ESC"};
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	short clr_bg = CON_CLR_BLACK;
@@ -161,23 +167,26 @@ void settings_menu()
 		int top = 2;
 		int b;
 
-		// Заблокировать отрисовку
+		// Р—Р°Р±Р»РѕРєРёСЂРѕРІР°С‚СЊ РѕС‚СЂРёСЃРѕРІРєСѓ
 		con_draw_lock();
 
-		// Очистка экрана
+		// РћС‡РёСЃС‚РєР° СЌРєСЂР°РЅР°
 		con_set_color(clr_font, clr_bg);
 		clrscr();
-		// Цикл отрисовывает кнопку
+		// Р¦РёРєР» РѕС‚СЂРёСЃРѕРІС‹РІР°РµС‚ РєРЅРѕРїРєСѓ
 		for (b = 0; b < menu_items_count; b++)
 		{
-			short btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
+			short btn_bg = clr_bg; // РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ С„РѕРЅ РєРЅРѕРїРєРё - РєР°Рє С„РѕРЅ СЌРєСЂР°РЅР°
 			if (b == menu_active_idx)
-				btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
+				btn_bg = clr_bg_active; // Р•СЃР»Рё РєРЅРѕРїРєР° Р°РєС‚РёРІРЅР° - С‚Рѕ СЂРёСЃСѓРµС‚СЃСЏ РґСЂСѓРіРёРј С†РІРµС‚РѕРј
 			
 			gotoxy(left, top);
 			con_set_color(clr_font, btn_bg);
 
-			printf("====================");
+			if (b == 0)
+				printf("~~~~~~~~~~~~~~~~~~~~");
+			else
+				printf("====================");			
 			top++;
 			gotoxy(left, top);
 			printf("|                   ");
@@ -190,20 +199,23 @@ void settings_menu()
 			printf("|");
 			top++;
 			gotoxy(left, top);
-			printf("====================");
+			if (b == 0)
+				printf("~~~~~~~~~~~~~~~~~~~~");
+			else
+				printf("====================");			
 			top += 2;
 		}
 
-		// Данные подготовлены, вывести на экран
+		// Р”Р°РЅРЅС‹Рµ РїРѕРґРіРѕС‚РѕРІР»РµРЅС‹, РІС‹РІРµСЃС‚Рё РЅР° СЌРєСЂР°РЅ
 		con_draw_release();
 
 
-		while (!key_is_pressed()) // Если пользователь нажимает кнопку
+		while (!key_is_pressed()) // Р•СЃР»Рё РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅР°Р¶РёРјР°РµС‚ РєРЅРѕРїРєСѓ
 		{
 			int code = key_pressed_code();
-			if (code == KEY_UP) // Если это стрелка вверх
+			if (code == KEY_UP) // Р•СЃР»Рё СЌС‚Рѕ СЃС‚СЂРµР»РєР° РІРІРµСЂС…
 			{
-				// То переход к верхнему пункту (если это возможно)
+				// РўРѕ РїРµСЂРµС…РѕРґ Рє РІРµСЂС…РЅРµРјСѓ РїСѓРЅРєС‚Сѓ (РµСЃР»Рё СЌС‚Рѕ РІРѕР·РјРѕР¶РЅРѕ)
 				if (menu_active_idx > 1)
 				{
 					menu_active_idx--;
@@ -215,9 +227,9 @@ void settings_menu()
 					break;
 				}
 			}
-			else if (code == KEY_DOWN) // Если стрелка вниз
+			else if (code == KEY_DOWN) // Р•СЃР»Рё СЃС‚СЂРµР»РєР° РІРЅРёР·
 			{
-				// То переход к нижнему пункту (если это возможно)
+				// РўРѕ РїРµСЂРµС…РѕРґ Рє РЅРёР¶РЅРµРјСѓ РїСѓРЅРєС‚Сѓ (РµСЃР»Рё СЌС‚Рѕ РІРѕР·РјРѕР¶РЅРѕ)
 				if (menu_active_idx + 1 < menu_items_count)
 				{
 					menu_active_idx++;
@@ -230,30 +242,30 @@ void settings_menu()
 				}
 			}
 			else if (code == KEY_ESC || code == 'q' || code == 'Q' ||
-				code == (unsigned char)'й' || code == (unsigned char)'Й') // ESC или 'q' - выход
+				code == (unsigned char)'Р№' || code == (unsigned char)'Р™') // ESC РёР»Рё 'q' - РІС‹С…РѕРґ
 			{
 				return;
 			}
-			else if (code == KEY_ENTER) // Нажата кнопка Enter
+			else if (code == KEY_ENTER) // РќР°Р¶Р°С‚Р° РєРЅРѕРїРєР° Enter
 			{
-				if (menu_active_idx == 3) // Выбран последний пункт - это выход
+				if (menu_active_idx == 3) // Р’С‹Р±СЂР°РЅ РїРѕСЃР»РµРґРЅРёР№ РїСѓРЅРєС‚ - СЌС‚Рѕ РІС‹С…РѕРґ
 					return;
 
-				if (menu_active_idx == 1)//Выбран пункт сложность
+				if (menu_active_idx == 1)//Р’С‹Р±СЂР°РЅ РїСѓРЅРєС‚ СЃР»РѕР¶РЅРѕСЃС‚СЊ
 					difficulty_selection();
 
-				if (menu_active_idx == 2)//Выбран пункт Первый ход
+				if (menu_active_idx == 2)//Р’С‹Р±СЂР°РЅ РїСѓРЅРєС‚ РџРµСЂРІС‹Р№ С…РѕРґ
 					first_turn_selection();
 				
 				break;
 			}
 
 
-			pause(40); // Небольная пауза (чтобы не загружать процессор)
+			pause(40); // РќРµР±РѕР»СЊРЅР°СЏ РїР°СѓР·Р° (С‡С‚РѕР±С‹ РЅРµ Р·Р°РіСЂСѓР¶Р°С‚СЊ РїСЂРѕС†РµСЃСЃРѕСЂ)
 		} // while (!key_is_pressed())
 
 
-		// "Съедается" оставшийся ввод
+		// "РЎСЉРµРґР°РµС‚СЃСЏ" РѕСЃС‚Р°РІС€РёР№СЃСЏ РІРІРѕРґ
 		while (key_is_pressed())
 			key_pressed_code();
 
@@ -263,7 +275,7 @@ void settings_menu()
 
 void difficulty_selection()
 {
-	const char* menu_items[] = { "Сложность" ,"Лёгкая", "Средняя", "Сложная" ,"Назад или ESC"};
+	char* menu_items[] = { "РЎР»РѕР¶РЅРѕСЃС‚СЊ" ,"Р›С‘РіРєР°СЏ", "РЎСЂРµРґРЅСЏСЏ", "РЎР»РѕР¶РЅР°СЏ" ,"РќР°Р·Р°Рґ РёР»Рё ESC"};
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	short clr_bg = CON_CLR_BLACK;
@@ -276,51 +288,68 @@ void difficulty_selection()
 		int top = 2;
 		int b;
 
-		// Заблокировать отрисовку
+		// Р—Р°Р±Р»РѕРєРёСЂРѕРІР°С‚СЊ РѕС‚СЂРёСЃРѕРІРєСѓ
 		con_draw_lock();
 
-		// Очистка экрана
+		// РћС‡РёСЃС‚РєР° СЌРєСЂР°РЅР°
 		con_set_color(clr_font, clr_bg);
 		clrscr();
-		// Цикл отрисовывает кнопку
+		// Р¦РёРєР» РѕС‚СЂРёСЃРѕРІС‹РІР°РµС‚ РєРЅРѕРїРєСѓ
 		for (b = 0; b < menu_items_count; b++)
 		{
-			short btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
-			if (b == difficult)
-				btn_bg = clr_bg_chosen;//Кнопка не активна и это текущая сложность
-			if (b == menu_active_idx)
-				btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
+			short btn_bg = clr_bg; // РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ С„РѕРЅ РєРЅРѕРїРєРё - РєР°Рє С„РѕРЅ СЌРєСЂР°РЅР°
 
+			//if (b == difficult)
+			//	btn_bg = clr_bg_chosen;//РљРЅРѕРїРєР° РЅРµ Р°РєС‚РёРІРЅР° Рё СЌС‚Рѕ С‚РµРєСѓС‰Р°СЏ СЃР»РѕР¶РЅРѕСЃС‚СЊ
+			if (b == menu_active_idx)
+				btn_bg = clr_bg_active; // Р•СЃР»Рё РєРЅРѕРїРєР° Р°РєС‚РёРІРЅР° - С‚Рѕ СЂРёСЃСѓРµС‚СЃСЏ РґСЂСѓРіРёРј С†РІРµС‚РѕРј
 			gotoxy(left, top);
 			con_set_color(clr_font, btn_bg);
 
-			printf("====================");
+			if (b == 0)
+				printf("~~~~~~~~~~~~~~~~~~~~");
+			else
+				printf("====================");			
 			top++;
-			gotoxy(left, top);
-			printf("|                   ");
+			if (b == difficult) {
+				gotoxy(left-4, top);
+				printf("--->|                   ");
+			}
+			else {
+				gotoxy(left, top);
+				printf("|                   ");
+			}
 
 			gotoxy(left + 10 - strlen(menu_items[b]) / 2, top);
 			printf("%s", menu_items[b]);
-
 			con_set_color(clr_font, btn_bg);
-			gotoxy(left + 19, top);
-			printf("|");
+			if (b == difficult) {
+				gotoxy(left + 19, top);
+				printf("|<---");
+			}
+			else {
+				gotoxy(left + 19, top);
+				printf("|");
+			}
 			top++;
 			gotoxy(left, top);
-			printf("====================");
+			if (b == 0)
+				printf("~~~~~~~~~~~~~~~~~~~~");
+			else
+				printf("====================");			
 			top += 2;
 		}
 
-		// Данные подготовлены, вывести на экран
+		// Р”Р°РЅРЅС‹Рµ РїРѕРґРіРѕС‚РѕРІР»РµРЅС‹, РІС‹РІРµСЃС‚Рё РЅР° СЌРєСЂР°РЅ
 		con_draw_release();
 
 
-		while (!key_is_pressed()) // Если пользователь нажимает кнопку
+		while (!key_is_pressed()) // Р•СЃР»Рё РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅР°Р¶РёРјР°РµС‚ РєРЅРѕРїРєСѓ
 		{
 			int code = key_pressed_code();
-			if (code == KEY_UP) // Если это стрелка вверх
+			if (code == KEY_UP) // Р•СЃР»Рё СЌС‚Рѕ СЃС‚СЂРµР»РєР° РІРІРµСЂС…
 			{
-				// То переход к верхнему пункту (если это возможно)
+				// РўРѕ РїРµСЂРµС…РѕРґ Рє РІРµСЂС…РЅРµРјСѓ РїСѓРЅРєС‚Сѓ (РµСЃР»Рё СЌС‚Рѕ РІРѕР·РјРѕР¶РЅРѕ)
 				if (menu_active_idx > 1)
 				{
 					menu_active_idx--;
@@ -332,9 +361,9 @@ void difficulty_selection()
 					break;
 				}
 			}
-			else if (code == KEY_DOWN) // Если стрелка вниз
+			else if (code == KEY_DOWN) // Р•СЃР»Рё СЃС‚СЂРµР»РєР° РІРЅРёР·
 			{
-				// То переход к нижнему пункту (если это возможно)
+				// РўРѕ РїРµСЂРµС…РѕРґ Рє РЅРёР¶РЅРµРјСѓ РїСѓРЅРєС‚Сѓ (РµСЃР»Рё СЌС‚Рѕ РІРѕР·РјРѕР¶РЅРѕ)
 				if (menu_active_idx + 1 < menu_items_count)
 				{
 					menu_active_idx++;
@@ -347,32 +376,32 @@ void difficulty_selection()
 				}
 			}
 			else if (code == KEY_ESC || code == 'q' || code == 'Q' ||
-				code == (unsigned char)'й' || code == (unsigned char)'Й') // ESC или 'q' - выход
+				code == (unsigned char)'Р№' || code == (unsigned char)'Р™') // ESC РёР»Рё 'q' - РІС‹С…РѕРґ
 			{
 				return;
 			}
-			else if (code == KEY_ENTER) // Нажата кнопка Enter
+			else if (code == KEY_ENTER) // РќР°Р¶Р°С‚Р° РєРЅРѕРїРєР° Enter
 			{
-				if (menu_active_idx == 4) // Выбран последний пункт - это выход
+				if (menu_active_idx == 4) // Р’С‹Р±СЂР°РЅ РїРѕСЃР»РµРґРЅРёР№ РїСѓРЅРєС‚ - СЌС‚Рѕ РІС‹С…РѕРґ
 					return;
 
-				if (menu_active_idx == 1)//Лёгкая сложность
+				if (menu_active_idx == 1)//Р›С‘РіРєР°СЏ СЃР»РѕР¶РЅРѕСЃС‚СЊ
 					difficult = 1;
 
-				if (menu_active_idx == 2)//Средняя сложность
+				if (menu_active_idx == 2)//РЎСЂРµРґРЅСЏСЏ СЃР»РѕР¶РЅРѕСЃС‚СЊ
 					difficult = 2;
 
-				if (menu_active_idx == 3)//Сложная
+				if (menu_active_idx == 3)//РЎР»РѕР¶РЅР°СЏ
 					difficult = 3;
 				break;
 			}
 
 
-			pause(40); // Небольная пауза (чтобы не загружать процессор)
+			pause(40); // РќРµР±РѕР»СЊРЅР°СЏ РїР°СѓР·Р° (С‡С‚РѕР±С‹ РЅРµ Р·Р°РіСЂСѓР¶Р°С‚СЊ РїСЂРѕС†РµСЃСЃРѕСЂ)
 		} // while (!key_is_pressed())
 
 
-		// "Съедается" оставшийся ввод
+		// "РЎСЉРµРґР°РµС‚СЃСЏ" РѕСЃС‚Р°РІС€РёР№СЃСЏ РІРІРѕРґ
 		while (key_is_pressed())
 			key_pressed_code();
 
@@ -380,7 +409,7 @@ void difficulty_selection()
 }
 
 void first_turn_selection() {
-	const char* menu_items[] = { "Первый ход за. . ." ,"Человек", "Компьютер" ,"Назад или ESC" };
+	const char* menu_items[] = { "РџСЂР°РІРѕ РїРµСЂРІРѕРіРѕ С…РѕРґР°" ,"Р§РµР»РѕРІРµРє", "РљРѕРјРїСЊСЋС‚РµСЂ" ,"РќР°Р·Р°Рґ РёР»Рё ESC" };
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	short clr_bg = CON_CLR_BLACK;
@@ -393,20 +422,20 @@ void first_turn_selection() {
 		int top = 2;
 		int b;
 
-		// Заблокировать отрисовку
+		// Р—Р°Р±Р»РѕРєРёСЂРѕРІР°С‚СЊ РѕС‚СЂРёСЃРѕРІРєСѓ
 		con_draw_lock();
 
-		// Очистка экрана
+		// РћС‡РёСЃС‚РєР° СЌРєСЂР°РЅР°
 		con_set_color(clr_font, clr_bg);
 		clrscr();
-		// Цикл отрисовывает кнопку
+		// Р¦РёРєР» РѕС‚СЂРёСЃРѕРІС‹РІР°РµС‚ РєРЅРѕРїРєСѓ
 		for (b = 0; b < menu_items_count; b++)
 		{
-			short btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
+			short btn_bg = clr_bg; // РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ С„РѕРЅ РєРЅРѕРїРєРё - РєР°Рє С„РѕРЅ СЌРєСЂР°РЅР°
 			if (b == turn)
-				btn_bg = clr_bg_chosen;//Кнопка не активна и это текущая сложность
+				btn_bg = clr_bg_chosen;//РљРЅРѕРїРєР° РЅРµ Р°РєС‚РёРІРЅР° Рё СЌС‚Рѕ С‚РµРєСѓС‰Р°СЏ СЃР»РѕР¶РЅРѕСЃС‚СЊ
 			if (b == menu_active_idx)
-				btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
+				btn_bg = clr_bg_active; // Р•СЃР»Рё РєРЅРѕРїРєР° Р°РєС‚РёРІРЅР° - С‚Рѕ СЂРёСЃСѓРµС‚СЃСЏ РґСЂСѓРіРёРј С†РІРµС‚РѕРј
 
 			gotoxy(left, top);
 			con_set_color(clr_font, btn_bg);
@@ -428,16 +457,16 @@ void first_turn_selection() {
 			top += 2;
 		}
 
-		// Данные подготовлены, вывести на экран
+		// Р”Р°РЅРЅС‹Рµ РїРѕРґРіРѕС‚РѕРІР»РµРЅС‹, РІС‹РІРµСЃС‚Рё РЅР° СЌРєСЂР°РЅ
 		con_draw_release();
 
 
-		while (!key_is_pressed()) // Если пользователь нажимает кнопку
+		while (!key_is_pressed()) // Р•СЃР»Рё РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅР°Р¶РёРјР°РµС‚ РєРЅРѕРїРєСѓ
 		{
 			int code = key_pressed_code();
-			if (code == KEY_UP) // Если это стрелка вверх
+			if (code == KEY_UP) // Р•СЃР»Рё СЌС‚Рѕ СЃС‚СЂРµР»РєР° РІРІРµСЂС…
 			{
-				// То переход к верхнему пункту (если это возможно)
+				// РўРѕ РїРµСЂРµС…РѕРґ Рє РІРµСЂС…РЅРµРјСѓ РїСѓРЅРєС‚Сѓ (РµСЃР»Рё СЌС‚Рѕ РІРѕР·РјРѕР¶РЅРѕ)
 				if (menu_active_idx > 1)
 				{
 					menu_active_idx--;
@@ -449,9 +478,9 @@ void first_turn_selection() {
 					break;
 				}
 			}
-			else if (code == KEY_DOWN) // Если стрелка вниз
+			else if (code == KEY_DOWN) // Р•СЃР»Рё СЃС‚СЂРµР»РєР° РІРЅРёР·
 			{
-				// То переход к нижнему пункту (если это возможно)
+				// РўРѕ РїРµСЂРµС…РѕРґ Рє РЅРёР¶РЅРµРјСѓ РїСѓРЅРєС‚Сѓ (РµСЃР»Рё СЌС‚Рѕ РІРѕР·РјРѕР¶РЅРѕ)
 				if (menu_active_idx + 1 < menu_items_count)
 				{
 					menu_active_idx++;
@@ -464,30 +493,30 @@ void first_turn_selection() {
 				}
 			}
 			else if (code == KEY_ESC || code == 'q' || code == 'Q' ||
-				code == (unsigned char)'й' || code == (unsigned char)'Й') // ESC или 'q' - выход
+				code == (unsigned char)'Р№' || code == (unsigned char)'Р™') // ESC РёР»Рё 'q' - РІС‹С…РѕРґ
 			{
 				return;
 			}
-			else if (code == KEY_ENTER) // Нажата кнопка Enter
+			else if (code == KEY_ENTER) // РќР°Р¶Р°С‚Р° РєРЅРѕРїРєР° Enter
 			{
-				if (menu_active_idx == 3) // Выбран последний пункт - это выход
+				if (menu_active_idx == 3) // Р’С‹Р±СЂР°РЅ РїРѕСЃР»РµРґРЅРёР№ РїСѓРЅРєС‚ - СЌС‚Рѕ РІС‹С…РѕРґ
 					return;
 
-				if (menu_active_idx == 1)//Человек ходит первым
+				if (menu_active_idx == 1)//Р§РµР»РѕРІРµРє С…РѕРґРёС‚ РїРµСЂРІС‹Рј
 					turn = 1;
 
-				if (menu_active_idx == 2)//Компьютер ходит первым
+				if (menu_active_idx == 2)//РљРѕРјРїСЊСЋС‚РµСЂ С…РѕРґРёС‚ РїРµСЂРІС‹Рј
 					turn = 2;
 
 				break;
 			}
 
 
-			pause(40); // Небольная пауза (чтобы не загружать процессор)
+			pause(40); // РќРµР±РѕР»СЊРЅР°СЏ РїР°СѓР·Р° (С‡С‚РѕР±С‹ РЅРµ Р·Р°РіСЂСѓР¶Р°С‚СЊ РїСЂРѕС†РµСЃСЃРѕСЂ)
 		} // while (!key_is_pressed())
 
 
-		// "Съедается" оставшийся ввод
+		// "РЎСЉРµРґР°РµС‚СЃСЏ" РѕСЃС‚Р°РІС€РёР№СЃСЏ РІРІРѕРґ
 		while (key_is_pressed())
 			key_pressed_code();
 
