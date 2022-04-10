@@ -17,7 +17,7 @@ void about();
 void settings_menu();
 void difficulty_selection();
 void first_turn_selection();
-
+void game();
 int difficult = 1; //сложность изначально "лёгкий"
 int turn = 1;
 
@@ -99,7 +99,7 @@ void main_menu()
 		while (!key_is_pressed()) // Если пользователь нажимает кнопку
 		{
 			int code = key_pressed_code();
-			if (code == KEY_UP) // Если это стрелка вверх
+			if (code == 'w' || code == 'W' || code == (unsigned char)'ц' || code == (unsigned char)'Ц') // Если это стрелка вверх
 			{
 				// То переход к верхнему пункту (если это возможно)
 				if (menu_active_idx > 1)
@@ -113,7 +113,7 @@ void main_menu()
 					break;
 				}
 			}
-			else if (code == KEY_DOWN) // Если стрелка вниз
+			else if (code == 's' || code == 'S' || code == (unsigned char)'ы' || code == (unsigned char)'Ы') // Если стрелка вниз
 			{
 				// То переход к нижнему пункту (если это возможно)
 				if (menu_active_idx + 1 < menu_items_count)
@@ -141,14 +141,180 @@ void main_menu()
 
 				if (menu_active_idx == 2) // Выбран пункт "настройки"
 					settings_menu();
-				//if (menu_active_idx == 1)
-
+				if (menu_active_idx == 1)
+					game();
 				//if (menu_active_idx == 3)
 				if (menu_active_idx == 4)
 					about();
 
 				break;
 			}
+
+
+			pause(40); // Небольная пауза (чтобы не загружать процессор)
+		} // while (!key_is_pressed())
+
+
+		// "Съедается" оставшийся ввод
+		while (key_is_pressed())
+			key_pressed_code();
+
+	} // while(1)
+}
+
+void game() {
+	char field_letters[5][5] = {'\0'};
+	int column_active_idx = 0;
+	int line_active_idx = 0;
+	int field_letters_column_count = 5;
+	int field_letters_line_count = 5;
+	while (1)
+	{
+		int left = 40;
+		int top = 2;
+		int i, j;
+
+		// Заблокировать отрисовку
+		con_draw_lock();
+
+		// Очистка экрана
+		con_set_color(clr_font, clr_bg);
+		clrscr();
+		// Цикл отрисовывает кнопку
+		for (i = 0; i < field_letters_column_count; i++)
+		{
+			for (j = 0; j < field_letters_line_count; j++) {
+				left = 40 + j * 9;
+				top = 2 + i * 5;
+				short btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
+				if (i == column_active_idx && j == line_active_idx)
+					btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
+
+				gotoxy(left, top);
+				con_set_color(clr_font, btn_bg);
+
+				printf("---------"); 
+				top++;
+				gotoxy(left, top);
+				printf("|       |");
+				top++;
+				gotoxy(left, top);
+				printf("|       ");
+
+				gotoxy(left+4, top);
+				printf("%c", field_letters[i][j]);
+				//printf("А", field_letters[i][j]);
+
+				gotoxy(left+8, top);
+				printf("|");
+				top++;
+
+				gotoxy(left, top);
+				printf("|       |");
+				top++;
+				gotoxy(left, top);
+				printf("---------");
+			}
+		}
+
+		// Данные подготовлены, вывести на экран
+		con_draw_release();
+
+
+		while (!key_is_pressed()) // Если пользователь нажимает кнопку
+		{
+			int code = key_pressed_code();
+			if (code == 'w' || code == 'W' || code == (unsigned char)'ц' || code == (unsigned char)'Ц') // Если это стрелка вверх
+			{
+				// То переход к верхнему пункту (если это возможно)
+				if (column_active_idx > 0)
+				{
+					column_active_idx--;
+					break;
+				}
+				else
+				{
+					column_active_idx = 4;
+					break;
+				}
+			}
+			else if ( code == 's' || code == 'S' || code == (unsigned char)'ы' || code == (unsigned char)'Ы') // Если стрелка вниз
+			{
+				// То переход к нижнему пункту (если это возможно)
+				if (column_active_idx < 4)
+				{
+					column_active_idx++;
+					break;
+				}
+				else
+				{
+					column_active_idx = 0;
+					break;
+				}
+			}
+			else if (code == 'd' || code == 'D' || code == (unsigned char)'в' || code == (unsigned char)'В') // Если стрелка вправо
+			{
+				// То переход к правому пункту (если это возможно)
+				if (line_active_idx < 4)
+				{
+					line_active_idx++;
+					break;
+				}
+				else
+				{
+					line_active_idx = 0;
+					break;
+				}
+			}
+			else if (code == 'a' || code == 'A' || code == (unsigned char)'ф' || code == (unsigned char)'Ф') // Если это стрелка влево
+			{
+				// То переход к левому пункту (если это возможно)
+				if (line_active_idx > 0)
+				{
+					line_active_idx--;
+					break;
+				}
+				else
+				{
+					line_active_idx = 4;
+					break;
+				}
+			}
+			else if(code == KEY_ENTER){
+				while (key_is_pressed())
+					key_pressed_code();
+				while (!key_is_pressed()) {
+					code = key_pressed_code();
+					if (code >= (unsigned char)'А' && code <= (unsigned char)'Я') {
+						field_letters[column_active_idx][line_active_idx] = code;
+						break;
+					}
+					else if (code >= (unsigned char)'а' && code <= (unsigned char)'я') {
+						field_letters[column_active_idx][line_active_idx] = code - 32;
+						break;
+					}
+					else break;
+				}
+				break;
+			}
+			else if (code == KEY_ESC || code == 'q' || code == 'Q' ||
+				code == (unsigned char)'й' || code == (unsigned char)'Й') // ESC или 'q' - выход
+			{
+				return;
+			}
+			//else if (code == KEY_ENTER) // Нажата кнопка Enter
+			//{
+			//	if (menu_active_idx == 3) // Выбран последний пункт - это выход
+			//		return;
+
+			//	if (menu_active_idx == 1)//Выбран пункт сложность
+			//		difficulty_selection();
+
+			//	if (menu_active_idx == 2)//Выбран пункт Первый ход
+			//		first_turn_selection();
+
+			//	break;
+			//}
 
 
 			pause(40); // Небольная пауза (чтобы не загружать процессор)
@@ -222,6 +388,7 @@ void settings_menu()
 		while (!key_is_pressed()) // Если пользователь нажимает кнопку
 		{
 			int code = key_pressed_code();
+			
 			if (code == KEY_UP) // Если это стрелка вверх
 			{
 				// То переход к верхнему пункту (если это возможно)

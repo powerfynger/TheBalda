@@ -147,7 +147,9 @@ int key_is_pressed()
 int key_pressed_code()
 {
 	int ch = _getch();
-	if (ch == 0 || ch == 224)
-		ch = 256 + _getch();
+	/*if (ch == 0 || ch == 224) {
+		ch = 256 + _getch()
+	}*/
+
 	return ch;
 }
