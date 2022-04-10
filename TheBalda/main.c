@@ -297,25 +297,10 @@ void game() {
 				}
 				break;
 			}
-			else if (code == KEY_ESC || code == 'q' || code == 'Q' ||
-				code == (unsigned char)'й' || code == (unsigned char)'Й') // ESC или 'q' - выход
+			else if (code == KEY_ESC) // ESC или 'q' - выход
 			{
 				return;
 			}
-			//else if (code == KEY_ENTER) // Нажата кнопка Enter
-			//{
-			//	if (menu_active_idx == 3) // Выбран последний пункт - это выход
-			//		return;
-
-			//	if (menu_active_idx == 1)//Выбран пункт сложность
-			//		difficulty_selection();
-
-			//	if (menu_active_idx == 2)//Выбран пункт Первый ход
-			//		first_turn_selection();
-
-			//	break;
-			//}
-
 
 			pause(40); // Небольная пауза (чтобы не загружать процессор)
 		} // while (!key_is_pressed())
