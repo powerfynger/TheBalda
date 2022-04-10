@@ -238,7 +238,7 @@ void game() {
 					break;
 				}
 			}
-			else if ( code == 's' || code == 'S' || code == (unsigned char)'ы' || code == (unsigned char)'Ы') // Если стрелка вниз
+			else if (code == 's' || code == 'S' || code == (unsigned char)'ы' || code == (unsigned char)'Ы') // Если стрелка вниз
 			{
 				// То переход к нижнему пункту (если это возможно)
 				if (column_active_idx < 4)
@@ -374,7 +374,7 @@ void settings_menu()
 		{
 			int code = key_pressed_code();
 			
-			if (code == KEY_UP) // Если это стрелка вверх
+			if (code == 'w' || code == 'W' || code == (unsigned char)'ц' || code == (unsigned char)'Ц') // Если это стрелка вверх
 			{
 				// То переход к верхнему пункту (если это возможно)
 				if (menu_active_idx > 1)
@@ -388,7 +388,7 @@ void settings_menu()
 					break;
 				}
 			}
-			else if (code == KEY_DOWN) // Если стрелка вниз
+			else if (code == 's' || code == 'S' || code == (unsigned char)'ы' || code == (unsigned char)'Ы') // Если стрелка вниз
 			{
 				// То переход к нижнему пункту (если это возможно)
 				if (menu_active_idx + 1 < menu_items_count)
@@ -507,7 +507,7 @@ void difficulty_selection()
 		while (!key_is_pressed()) // Если пользователь нажимает кнопку
 		{
 			int code = key_pressed_code();
-			if (code == KEY_UP) // Если это стрелка вверх
+			if (code == 'w' || code == 'W' || code == (unsigned char)'ц' || code == (unsigned char)'Ц') // Если это стрелка вверх
 			{
 				// То переход к верхнему пункту (если это возможно)
 				if (menu_active_idx > 1)
@@ -521,7 +521,7 @@ void difficulty_selection()
 					break;
 				}
 			}
-			else if (code == KEY_DOWN) // Если стрелка вниз
+			else if (code == code == 's' || code == 'S' || code == (unsigned char)'ы' || code == (unsigned char)'Ы') // Если стрелка вниз
 			{
 				// То переход к нижнему пункту (если это возможно)
 				if (menu_active_idx + 1 < menu_items_count)
@@ -623,7 +623,7 @@ void first_turn_selection() {
 		while (!key_is_pressed()) // Если пользователь нажимает кнопку
 		{
 			int code = key_pressed_code();
-			if (code == KEY_UP) // Если это стрелка вверх
+			if (code == 'w' || code == 'W' || code == (unsigned char)'ц' || code == (unsigned char)'Ц') // Если это стрелка вверх
 			{
 				// То переход к верхнему пункту (если это возможно)
 				if (menu_active_idx > 1)
@@ -637,7 +637,7 @@ void first_turn_selection() {
 					break;
 				}
 			}
-			else if (code == KEY_DOWN) // Если стрелка вниз
+			else if (code == 's' || code == 'S' || code == (unsigned char)'ы' || code == (unsigned char)'Ы') // Если стрелка вниз
 			{
 				// То переход к нижнему пункту (если это возможно)
 				if (menu_active_idx + 1 < menu_items_count)
