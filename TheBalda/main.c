@@ -7,7 +7,7 @@
 #define	 clr_bg					CON_CLR_BLACK
 #define  clr_bg_active			CON_CLR_RED
 #define  clr_font				CON_CLR_WHITE_LIGHT
-#define clr_bg_chosen			CON_CLR_RED_LIGHT
+#define clr_bg_chosen			CON_CLR_GREEN
 
 void main_menu();
 void demo_animation();
@@ -16,8 +16,9 @@ void demo_input();
 void about();
 void settings_menu();
 void difficulty_selection();
-void first_turn_selection();
-void game();
+void first_turn_selection(); 
+void set_letter();
+void set_word(char field_letters[5][5], int column_active_idx, int line_active_idx);
 int difficult = 1; //сложность изначально "лёгкий"
 int turn = 1;
 
@@ -142,7 +143,7 @@ void main_menu()
 				if (menu_active_idx == 2) // Выбран пункт "настройки"
 					settings_menu();
 				if (menu_active_idx == 1)
-					game();
+					set_letter();
 				//if (menu_active_idx == 3)
 				if (menu_active_idx == 4)
 					about();
@@ -162,8 +163,19 @@ void main_menu()
 	} // while(1)
 }
 
-void game() {
-	char field_letters[5][5] = {'\0'};
+void set_letter() {
+	char field_letters[5][5];
+	int i, j;
+	for (i = 0; i < 5; i++) {
+		for (j = 0; j < 5; j++) {
+			field_letters[i][j] = '\0';
+		}
+	}
+	field_letters[2][0] = 'Б';
+	field_letters[2][1] = 'А';
+	field_letters[2][2] = 'Л';
+	field_letters[2][3] = 'Д';
+	field_letters[2][4] = 'А';
 	int column_active_idx = 0;
 	int line_active_idx = 0;
 	int field_letters_column_count = 5;
@@ -173,7 +185,7 @@ void game() {
 		int left = 40;
 		int top = 2;
 		int i, j;
-
+		short btn_bg;
 		// Заблокировать отрисовку
 		con_draw_lock();
 
@@ -186,7 +198,7 @@ void game() {
 			for (j = 0; j < field_letters_line_count; j++) {
 				left = 40 + j * 9;
 				top = 2 + i * 5;
-				short btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
+				btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
 				if (i == column_active_idx && j == line_active_idx)
 					btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
 
@@ -281,19 +293,48 @@ void game() {
 				}
 			}
 			else if(code == KEY_ENTER){
+				if (!(field_letters[column_active_idx][line_active_idx] == '\0')) break;
+				left = 40 + line_active_idx * 9;
+				top = 2 + column_active_idx * 5;
+				btn_bg = clr_bg_chosen;
+
+				gotoxy(left, top);
+				con_set_color(clr_font, btn_bg);
+
+				printf("---------");
+				top++;
+				gotoxy(left, top);
+				printf("|       |");
+				top++;
+				gotoxy(left, top);
+				printf("|       ");
+
+				gotoxy(left + 4, top);
+				printf("%c", field_letters[column_active_idx][line_active_idx]);
+				//printf("А", field_letters[i][j]);
+
+				gotoxy(left + 8, top);
+				printf("|");
+				top++;
+
+				gotoxy(left, top);
+				printf("|       |");
+				top++;
+				gotoxy(left, top);
+				printf("---------");
+
 				while (key_is_pressed())
 					key_pressed_code();
 				while (!key_is_pressed()) {
 					code = key_pressed_code();
 					if (code >= (unsigned char)'А' && code <= (unsigned char)'Я') {
 						field_letters[column_active_idx][line_active_idx] = code;
-						break;
 					}
 					else if (code >= (unsigned char)'а' && code <= (unsigned char)'я') {
 						field_letters[column_active_idx][line_active_idx] = code - 32;
-						break;
 					}
-					else break;
+					set_word(field_letters, column_active_idx, line_active_idx);
+					break;
 				}
 				break;
 			}
@@ -311,6 +352,248 @@ void game() {
 			key_pressed_code();
 
 	} // while(1)
+}
+void set_word(char field_letters[5][5], int column_active_idx, int line_active_idx) {
+	int i, j;
+	char field_word[25][2];
+	int word_length = 0;
+	int column_letter_idx = column_active_idx;
+	int line_letter_idx = line_active_idx;
+	while (1)
+	{
+		int left = 40;
+		int top = 2;
+		int i, j, k, n;
+		short btn_bg;
+		int flag = 0;
+		// Заблокировать отрисовку
+		con_draw_lock();
+
+		// Очистка экрана
+		con_set_color(clr_font, clr_bg);
+		clrscr();
+		// Цикл отрисовывает кнопку
+		for (i = 0; i < 5; i++)
+		{
+			for (j = 0; j < 5; j++) {
+				left = 40 + j * 9;
+				top = 2 + i * 5;
+				btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
+				if (i == column_active_idx && j == line_active_idx)
+					btn_bg = clr_bg_chosen; // Если кнопка активна - то рисуется другим цветом
+				for (k = 0; k < word_length; k++) {
+					if (i == field_word[k][0] && j == field_word[k][1]) {
+						btn_bg = clr_bg_chosen;
+					}
+				}
+				gotoxy(left, top);
+				con_set_color(clr_font, btn_bg);
+
+				printf("---------");
+				top++;
+				gotoxy(left, top);
+				printf("|       |");
+				top++;
+				gotoxy(left, top);
+				printf("|       ");
+
+				gotoxy(left + 4, top);
+				printf("%c", field_letters[i][j]);
+				//printf("А", field_letters[i][j]);
+
+				gotoxy(left + 8, top);
+				printf("|");
+				top++;
+
+				gotoxy(left, top);
+				printf("|       |");
+				top++;
+				gotoxy(left, top);
+				printf("---------");
+			}
+		}
+		// Данные подготовлены, вывести на экран
+		con_draw_release();
+
+		while (!key_is_pressed()) // Если пользователь нажимает кнопку
+		{
+			int code = key_pressed_code();
+			if (code == 'w' || code == 'W' || code == (unsigned char)'ц' || code == (unsigned char)'Ц') // Если это стрелка вверх
+			{
+				if (word_length > 0) {
+					if (column_active_idx > 0)
+					{
+						for (n = 0; n < word_length; n++) {
+							if (column_active_idx - 1 == field_word[n][0]) flag = 1;//прошли уже эту клетку?
+						}
+						if (field_letters[column_active_idx - 1][line_active_idx] != '\0' && flag != 1) {
+							column_active_idx--;
+						}
+					}
+					else
+					{
+						for (n = 0; n < word_length; n++) {
+							if (4 == field_word[n][0]) flag = 1;//прошли уже эту клетку?
+						}
+						if (field_letters[4][line_active_idx] != '\0' && flag != 1) {
+							column_active_idx = 4;
+						}
+					}
+					word_length++;
+					field_word[word_length - 1][0] = column_active_idx;
+					field_word[word_length - 1][1] = line_active_idx;
+				}
+				else
+				{
+					if (column_active_idx > 0)
+					{
+						column_active_idx--;
+					}
+					else
+					{
+						column_active_idx = 4;
+					}
+				}
+				break;
+			}
+			else if (code == 's' || code == 'S' || code == (unsigned char)'ы' || code == (unsigned char)'Ы') // Если стрелка вниз
+			{
+
+				if (word_length > 0) {
+					if (column_active_idx < 4)
+					{
+						for (n = 0; n < word_length; n++) {
+							if (column_active_idx + 1 == field_word[n][0]) flag = 1;//прошли уже эту клетку?
+						}
+						if (field_letters[column_active_idx + 1][line_active_idx] != '\0' && flag != 1) {
+							column_active_idx++;
+						}
+					}
+					else
+					{
+						for (n = 0; n < word_length; n++) {
+							if (0 == field_word[n][0]) flag = 1;//прошли уже эту клетку?
+						}
+						if (field_letters[0][line_active_idx] != '\0' && flag != 1) {
+							column_active_idx = 0;
+						}
+					}
+					word_length++;
+					field_word[word_length - 1][0] = column_active_idx;
+					field_word[word_length - 1][1] = line_active_idx;
+				}
+				else
+				{
+					if (column_active_idx < 4)
+					{
+						column_active_idx++;
+					}
+					else
+					{
+						column_active_idx = 0;
+					}
+				}
+				break;
+			}
+			else if (code == 'd' || code == 'D' || code == (unsigned char)'в' || code == (unsigned char)'В') // Если стрелка вправо
+			{
+				if (word_length > 0) {
+					if (line_active_idx < 4)
+					{
+						for (n = 0; n < word_length; n++) {
+							if (line_active_idx + 1 == field_word[n][1]) flag = 1;//прошли уже эту клетку?
+						}
+						if (field_letters[column_active_idx][line_active_idx + 1] != '\0' && flag != 1) {
+							line_active_idx++;
+						}
+					}
+					else
+					{
+						for (n = 0; n < word_length; n++) {
+							if (0 == field_word[n][1]) flag = 1;//прошли уже эту клетку?
+						}
+						if (field_letters[column_active_idx][0] != '\0' && flag != 1) {
+							line_active_idx = 0;
+						}
+					}
+					word_length++;
+					field_word[word_length - 1][0] = column_active_idx;
+					field_word[word_length - 1][1] = line_active_idx;
+				}
+				else
+				{
+					if (line_active_idx < 4)
+					{
+						line_active_idx++;
+					}
+					else
+					{
+						line_active_idx = 0;
+					}
+				}
+				break;
+			}
+			else if (code == 'a' || code == 'A' || code == (unsigned char)'ф' || code == (unsigned char)'Ф') // Если это стрелка влево
+			{
+				if (word_length > 0) {
+					if (line_active_idx > 0)
+					{
+						for (n = 0; n < word_length; n++) {
+							if (line_active_idx - 1 == field_word[n][1]) flag = 1;//прошли уже эту клетку?
+						}
+						if (field_letters[column_active_idx][line_active_idx - 1] != '\0' && flag != 1) {
+							line_active_idx--;
+						}
+					}
+					else
+					{
+						for (n = 0; n < word_length; n++) {
+							if (4 == field_word[n][1]) flag = 1;//прошли уже эту клетку?
+						}
+						if (field_letters[column_active_idx][4] != '\0' && flag != 1) {
+							line_active_idx = 4;
+						}
+					}
+					word_length++;
+					field_word[word_length - 1][0] = column_active_idx;
+					field_word[word_length - 1][1] = line_active_idx;
+				}
+				else
+				{
+					if (line_active_idx > 0)
+					{
+						line_active_idx--;
+					}
+					else
+					{
+						line_active_idx = 4;
+					}
+				}
+				break;
+			}
+			else if (code == KEY_ENTER) 
+			{
+				if (word_length == 0 && field_letters[column_active_idx][line_active_idx] != '\0') {
+					word_length = 1;
+					field_word[0][0] = column_active_idx;
+					field_word[0][1] = line_active_idx;
+				}
+				break;
+			}
+			else if (code == KEY_ESC) // ESC или 'q' - выход
+			{
+				return;
+			}
+
+			pause(40); // Небольная пауза (чтобы не загружать процессор)
+		} // while (!key_is_pressed())
+
+
+		// "Съедается" оставшийся ввод
+		while (key_is_pressed())
+			key_pressed_code();
+
+	}
 }
 
 void settings_menu()
@@ -496,7 +779,7 @@ void difficulty_selection()
 			if (b == 0)
 				printf("~~~~~~~~~~~~~~~~~~~~");
 			else
-				printf("====================");			
+				printf("====================");
 			top += 2;
 		}
 
@@ -691,7 +974,7 @@ void about() {
 
 	con_set_color(CON_CLR_GRAY, CON_CLR_BLACK);
 	gotoxy(8, 3);
-	printf("Данная программа является примером использования библиотеки wincon.\n\n");
+	printf("Что-то очём-то.\n\n");
 
 	gotoxy(8, 4);
 	printf("Для продолжения нажмите любую клавишу.");
