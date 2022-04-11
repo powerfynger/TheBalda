@@ -18,7 +18,7 @@ void settings_menu();
 void difficulty_selection();
 void first_turn_selection(); 
 void set_letter();
-void set_word(char field_letters[5][5], int column_active_idx, int line_active_idx);
+int set_word(char field_letters[5][5], int column_active_idx, int line_active_idx);
 int difficult = 1; //сложность изначально "лёгкий"
 int turn = 1;
 
@@ -166,6 +166,7 @@ void main_menu()
 void set_letter() {
 	char field_letters[5][5];
 	int i, j;
+	int is_word;
 	for (i = 0; i < 5; i++) {
 		for (j = 0; j < 5; j++) {
 			field_letters[i][j] = '\0';
@@ -342,7 +343,8 @@ void set_letter() {
 						field_letters[column_active_idx][line_active_idx] = code - 32;
 					}
 					else break;
-					set_word(field_letters, column_active_idx, line_active_idx);
+					is_word = set_word(field_letters, column_active_idx, line_active_idx);
+					if (is_word == 1) field_letters[column_active_idx][line_active_idx] = '\0';
 					break;
 				}
 				break;
@@ -362,7 +364,7 @@ void set_letter() {
 
 	} // while(1)
 }
-void set_word(char field_letters[5][5], int column_active_idx, int line_active_idx) {
+int set_word(char field_letters[5][5], int column_active_idx, int line_active_idx) {
 	int i, j;
 	char field_word[25][2];
 	int word_length = 0;
@@ -585,11 +587,12 @@ void set_word(char field_letters[5][5], int column_active_idx, int line_active_i
 					field_word[0][0] = column_active_idx;
 					field_word[0][1] = line_active_idx;
 				}
+				else return 0;
 				break;
 			}
 			else if (code == KEY_ESC) // ESC или 'q' - выход
 			{
-				return;
+				return 1;
 			}
 
 			pause(40); // Небольная пауза (чтобы не загружать процессор)
