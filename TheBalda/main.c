@@ -293,7 +293,7 @@ void set_letter() {
 				}
 			}
 			else if(code == KEY_ENTER){
-				if (!(field_letters[column_active_idx][line_active_idx] == '\0')) break;
+				if (field_letters[column_active_idx][line_active_idx] != '\0') break;
 				left = 40 + line_active_idx * 9;
 				top = 2 + column_active_idx * 5;
 				btn_bg = clr_bg_chosen;
@@ -357,8 +357,6 @@ void set_word(char field_letters[5][5], int column_active_idx, int line_active_i
 	int i, j;
 	char field_word[25][2];
 	int word_length = 0;
-	int column_letter_idx = column_active_idx;
-	int line_letter_idx = line_active_idx;
 	while (1)
 	{
 		int left = 40;
@@ -424,7 +422,7 @@ void set_word(char field_letters[5][5], int column_active_idx, int line_active_i
 					if (column_active_idx > 0)
 					{
 						for (n = 0; n < word_length; n++) {
-							if (column_active_idx - 1 == field_word[n][0]) flag = 1;//прошли уже эту клетку?
+							if (column_active_idx - 1 == field_word[n][0] && line_active_idx == field_word[n][1]) flag = 1; //прошли уже эту клетку?
 						}
 						if (field_letters[column_active_idx - 1][line_active_idx] != '\0' && flag != 1) {
 							column_active_idx--;
@@ -463,7 +461,7 @@ void set_word(char field_letters[5][5], int column_active_idx, int line_active_i
 					if (column_active_idx < 4)
 					{
 						for (n = 0; n < word_length; n++) {
-							if (column_active_idx + 1 == field_word[n][0]) flag = 1;//прошли уже эту клетку?
+							if (column_active_idx + 1 == field_word[n][0] && line_active_idx == field_word[n][1]) flag = 1;//прошли уже эту клетку?
 						}
 						if (field_letters[column_active_idx + 1][line_active_idx] != '\0' && flag != 1) {
 							column_active_idx++;
@@ -501,7 +499,7 @@ void set_word(char field_letters[5][5], int column_active_idx, int line_active_i
 					if (line_active_idx < 4)
 					{
 						for (n = 0; n < word_length; n++) {
-							if (line_active_idx + 1 == field_word[n][1]) flag = 1;//прошли уже эту клетку?
+							if (line_active_idx + 1 == field_word[n][1] && column_active_idx == field_word[n][0]) flag = 1;//прошли уже эту клетку?
 						}
 						if (field_letters[column_active_idx][line_active_idx + 1] != '\0' && flag != 1) {
 							line_active_idx++;
@@ -539,7 +537,7 @@ void set_word(char field_letters[5][5], int column_active_idx, int line_active_i
 					if (line_active_idx > 0)
 					{
 						for (n = 0; n < word_length; n++) {
-							if (line_active_idx - 1 == field_word[n][1]) flag = 1;//прошли уже эту клетку?
+							if (line_active_idx - 1 == field_word[n][1] && column_active_idx == field_word[n][0]) flag = 1;//прошли уже эту клетку?
 						}
 						if (field_letters[column_active_idx][line_active_idx - 1] != '\0' && flag != 1) {
 							line_active_idx--;
