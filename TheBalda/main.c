@@ -294,6 +294,14 @@ void set_letter() {
 			}
 			else if(code == KEY_ENTER){
 				if (field_letters[column_active_idx][line_active_idx] != '\0') break;
+				if (   (column_active_idx == 4 && field_letters[0][line_active_idx] == '\0'
+					|| column_active_idx != 4 && field_letters[column_active_idx + 1][line_active_idx] == '\0')
+					&& (column_active_idx == 0 && field_letters[4][line_active_idx] == '\0'
+					|| column_active_idx != 0 && field_letters[column_active_idx - 1][line_active_idx] == '\0')
+					&& (line_active_idx == 4 && field_letters[column_active_idx][0] == '\0'
+					|| line_active_idx != 4 && field_letters[column_active_idx][line_active_idx + 1] == '\0')
+					&& (line_active_idx == 0 && field_letters[column_active_idx][4] == '\0'
+					|| line_active_idx != 0 && field_letters[column_active_idx][line_active_idx - 1] == '\0')) break;
 				left = 40 + line_active_idx * 9;
 				top = 2 + column_active_idx * 5;
 				btn_bg = clr_bg_chosen;
@@ -333,6 +341,7 @@ void set_letter() {
 					else if (code >= (unsigned char)'а' && code <= (unsigned char)'я') {
 						field_letters[column_active_idx][line_active_idx] = code - 32;
 					}
+					else break;
 					set_word(field_letters, column_active_idx, line_active_idx);
 					break;
 				}
