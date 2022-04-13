@@ -7,7 +7,8 @@
 #define	 clr_bg					CON_CLR_BLACK
 #define  clr_bg_active			CON_CLR_RED
 #define  clr_font				CON_CLR_WHITE_LIGHT
-#define clr_bg_chosen			CON_CLR_GREEN
+#define  clr_bg_chosen			CON_CLR_GREEN
+#define  clr_bg_warning         CON_CLR_YELLOW
 
 void main_menu();
 void demo_animation();
@@ -368,6 +369,8 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 	int i, j;
 	char field_word[25][2];
 	int word_length = 0;
+	int column_letter_idx = column_active_idx;
+	int line_letter_idx = line_active_idx;
 	while (1)
 	{
 		int left = 40;
@@ -439,15 +442,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 							column_active_idx--;
 						}
 					}
-					else
-					{
-						for (n = 0; n < word_length; n++) {
-							if (4 == field_word[n][0]) flag = 1;//прошли уже эту клетку?
-						}
-						if (field_letters[4][line_active_idx] != '\0' && flag != 1) {
-							column_active_idx = 4;
-						}
-					}
+					//добавляем букву в слово
 					word_length++;
 					field_word[word_length - 1][0] = column_active_idx;
 					field_word[word_length - 1][1] = line_active_idx;
@@ -478,15 +473,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 							column_active_idx++;
 						}
 					}
-					else
-					{
-						for (n = 0; n < word_length; n++) {
-							if (0 == field_word[n][0]) flag = 1;//прошли уже эту клетку?
-						}
-						if (field_letters[0][line_active_idx] != '\0' && flag != 1) {
-							column_active_idx = 0;
-						}
-					}
+					//добавляем букву в слово
 					word_length++;
 					field_word[word_length - 1][0] = column_active_idx;
 					field_word[word_length - 1][1] = line_active_idx;
@@ -516,15 +503,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 							line_active_idx++;
 						}
 					}
-					else
-					{
-						for (n = 0; n < word_length; n++) {
-							if (0 == field_word[n][1]) flag = 1;//прошли уже эту клетку?
-						}
-						if (field_letters[column_active_idx][0] != '\0' && flag != 1) {
-							line_active_idx = 0;
-						}
-					}
+					//добавляем букву в слово
 					word_length++;
 					field_word[word_length - 1][0] = column_active_idx;
 					field_word[word_length - 1][1] = line_active_idx;
@@ -554,15 +533,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 							line_active_idx--;
 						}
 					}
-					else
-					{
-						for (n = 0; n < word_length; n++) {
-							if (4 == field_word[n][1]) flag = 1;//прошли уже эту клетку?
-						}
-						if (field_letters[column_active_idx][4] != '\0' && flag != 1) {
-							line_active_idx = 4;
-						}
-					}
+					//добавляем букву в слово
 					word_length++;
 					field_word[word_length - 1][0] = column_active_idx;
 					field_word[word_length - 1][1] = line_active_idx;
@@ -587,7 +558,70 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 					field_word[0][0] = column_active_idx;
 					field_word[0][1] = line_active_idx;
 				}
-				else return 0;
+				else 
+				{
+					flag = 0;
+					for (n = 0; n < word_length; n++) {
+						if (column_letter_idx == field_word[n][0] && line_letter_idx == field_word[n][1]) flag = 1;
+					}
+					if (flag == 1) return 0;
+					else 
+					{
+						left = 40;
+						top = 2;
+						// Заблокировать отрисовку
+						con_draw_lock();
+
+						// Очистка экрана
+						con_set_color(clr_font, clr_bg);
+						clrscr();
+						// Цикл отрисовывает кнопку
+						for (i = 0; i < 5; i++)
+						{
+							for (j = 0; j < 5; j++) {
+								left = 40 + j * 9;
+								top = 2 + i * 5;
+								btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
+								if (i == column_letter_idx && j == line_letter_idx)
+									btn_bg = clr_bg_warning; // Если кнопка активна - то рисуется другим цветом
+
+								gotoxy(left, top);
+								con_set_color(clr_font, btn_bg);
+
+								printf("---------");
+								top++;
+								gotoxy(left, top);
+								printf("|       |");
+								top++;
+								gotoxy(left, top);
+								printf("|       ");
+
+								gotoxy(left + 4, top);
+								printf("%c", field_letters[i][j]);
+								//printf("А", field_letters[i][j]);
+
+								gotoxy(left + 8, top);
+								printf("|");
+								top++;
+
+								gotoxy(left, top);
+								printf("|       |");
+								top++;
+								gotoxy(left, top);
+								printf("---------");
+							}
+						}
+						// Данные подготовлены, вывести на экран
+						con_draw_release();
+
+						word_length = 0;
+						for (n = 0; n < word_length; n++) {
+							field_word[n][0] = '\0';
+							field_word[n][1] = '\0';
+						}
+						pause(100);
+					}
+				}
 				break;
 			}
 			else if (code == KEY_ESC) // ESC или 'q' - выход
