@@ -28,6 +28,13 @@ int turn = 1;
 
 int main()
 {
+	FILE* file;
+	char name[] = "singular.txt";
+	file = fopen(name, "r");
+	if (file == NULL) {
+		printf("I have no words!");
+		return 1;
+	}
 	// Инициализируется консоль, скрывается курсор
 	con_init(100, 25);
 	// system("mode con cols=100 lines=25");
@@ -551,7 +558,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 				}
 				break;
 			}
-			else if (code == KEY_ENTER) 
+			else if (code == KEY_ENTER && field_letters[column_active_idx][line_active_idx] != '\0')
 			{
 				if (word_length == 0 && field_letters[column_active_idx][line_active_idx] != '\0') {
 					word_length = 1;
@@ -560,12 +567,12 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 				}
 				else 
 				{
+					//Проверка: входит ли поставленная буква в выделенное слово
 					flag = 0;
 					for (n = 0; n < word_length; n++) {
 						if (column_letter_idx == field_word[n][0] && line_letter_idx == field_word[n][1]) flag = 1;
 					}
-					if (flag == 1) return 0;
-					else 
+					if (flag == 0)
 					{
 						left = 40;
 						top = 2;
@@ -583,7 +590,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 								top = 2 + i * 5;
 								btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
 								if (i == column_letter_idx && j == line_letter_idx)
-									btn_bg = clr_bg_warning; // Если кнопка активна - то рисуется другим цветом
+									btn_bg = clr_bg_warning; // Если это ячейка с не попавшей в слово буквой, то подсвечиваем жёлтым
 
 								gotoxy(left, top);
 								con_set_color(clr_font, btn_bg);
@@ -620,6 +627,12 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 							field_word[n][1] = '\0';
 						}
 						pause(100);
+					}
+					else 
+					{
+						FILE* file = fopen("singular.txt", "rt");
+
+						return 0;
 					}
 				}
 				break;
