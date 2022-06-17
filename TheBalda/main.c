@@ -22,19 +22,19 @@ void set_letter();
 int set_word(char field_letters[5][5], int column_active_idx, int line_active_idx);
 int difficult = 1; //сложность изначально "лёгкий"
 int turn = 1;
-
-
+char words_bank[21][31];
+int words_bank_len = 0;
 
 
 int main()
 {
 	FILE* file;
-	char name[] = "singular.txt";
-	file = fopen(name, "r");
+	file = fopen("singular.txt", "r");
 	if (file == NULL) {
-		printf("I have no words!");
+		printf("I just don't have the words to describe the pain i feel!");
 		return 1;
 	}
+	fclose(file);
 	// Инициализируется консоль, скрывается курсор
 	con_init(100, 25);
 	// system("mode con cols=100 lines=25");
@@ -180,11 +180,21 @@ void set_letter() {
 			field_letters[i][j] = '\0';
 		}
 	}
+	/*FILE* file;
+	file = fopen("singular.txt", "r");*/
+
 	field_letters[2][0] = 'Б';
 	field_letters[2][1] = 'А';
 	field_letters[2][2] = 'Л';
 	field_letters[2][3] = 'Д';
 	field_letters[2][4] = 'А';
+	words_bank[0][0] = 'Б';
+	words_bank[0][1] = 'А';
+	words_bank[0][2] = 'Л';
+	words_bank[0][3] = 'Д';
+	words_bank[0][4] = 'А';
+	words_bank[0][5] = '\0';
+	words_bank_len = 1;
 	int column_active_idx = 0;
 	int line_active_idx = 0;
 	int field_letters_column_count = 5;
@@ -630,14 +640,49 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 					}
 					else 
 					{
-						FILE* file = fopen("singular.txt", "rt");
+						//Проверка на наличие слова в словаре
+						FILE* file = fopen("singular.txt", "r");
+						char str[31];
+						int flag_compare = 0;
+						while (!feof(file))
+						{
+							fgets(str, 30, file);
+							int compare_idx = 0;
+							while (compare_idx < word_length) {
+								if (field_letters[field_word[compare_idx][0]][field_word[compare_idx][1]] == str[compare_idx] - 32) compare_idx++;
+								else break;
+							}
+							if (compare_idx == word_length && str[compare_idx] == '\n') {
+								compare_idx = 0;
+								for (int i = 0; i < words_bank_len; i++) {
+									while (compare_idx < word_length) {
+										if (field_letters[field_word[compare_idx][0]][field_word[compare_idx][1]] == words_bank[i][compare_idx]) compare_idx++;
+										else break;
+									}
+									if (compare_idx == word_length && words_bank[i][compare_idx] == '\0') {
+										flag_compare = 1;
+									}
+								}
+								if (flag_compare != 1) {
+									for (int i = 0; i < word_length; i++) {
+										words_bank[words_bank_len][i] = field_letters[field_word[compare_idx][0]][field_word[compare_idx][1]];
+									}
+									words_bank_len += 1;
+									return 0;
+								}
+							}
+						}
+						word_length = 0;
+						for (n = 0; n < word_length; n++) {
+							field_word[n][0] = '\0';
+							field_word[n][1] = '\0';
+						}
 
-						return 0;
 					}
 				}
 				break;
 			}
-			else if (code == KEY_ESC) // ESC или 'q' - выход
+			else if (code == KEY_ESC) // ESC - выход
 			{
 				return 1;
 			}
