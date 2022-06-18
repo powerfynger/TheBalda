@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctime>
 
 #define	 clr_bg					CON_CLR_BLACK
 #define  clr_bg_active			CON_CLR_RED
@@ -17,17 +18,21 @@ void demo_input();
 void about();
 void settings_menu();
 void difficulty_selection();
-void first_turn_selection(); 
+void first_turn_selection();
 void set_letter();
 int set_word(char field_letters[5][5], int column_active_idx, int line_active_idx);
 int difficult = 1; //сложность изначально "лёгкий"
 int turn = 1;
 char words_bank[21][31];
 int words_bank_len = 0;
+clock_t start_turn;
+clock_t end_turn;
 
 
 int main()
 {
+	system("chcp 1251");
+	system("cls");
 	FILE* file;
 	file = fopen("singular.txt", "r");
 	if (file == NULL) {
@@ -180,21 +185,29 @@ void set_letter() {
 			field_letters[i][j] = '\0';
 		}
 	}
-	/*FILE* file;
-	file = fopen("singular.txt", "r");*/
 
-	field_letters[2][0] = 'Б';
-	field_letters[2][1] = 'А';
-	field_letters[2][2] = 'Л';
-	field_letters[2][3] = 'Д';
-	field_letters[2][4] = 'А';
-	words_bank[0][0] = 'Б';
-	words_bank[0][1] = 'А';
-	words_bank[0][2] = 'Л';
-	words_bank[0][3] = 'Д';
-	words_bank[0][4] = 'А';
+	//Случайнок слово в начале
+	FILE* five_file;
+	char five_word[7];
+	five_file = fopen("fiveword.txt", "r");
+	srand(time(NULL));
+	int r = rand() % 4164;
+	system("cls");
+	for (i = 1; i != r; i++) fgets(five_word, 7, five_file);
+	field_letters[2][0] = five_word[0] - 32;
+	field_letters[2][1] = five_word[1] - 32;
+	field_letters[2][2] = five_word[2] - 32;
+	field_letters[2][3] = five_word[3] - 32;
+	field_letters[2][4] = five_word[4] - 32;
+	words_bank[0][0] = five_word[0] - 32;
+	words_bank[0][1] = five_word[1] - 32;
+	words_bank[0][2] = five_word[2] - 32;
+	words_bank[0][3] = five_word[3] - 32;
+	words_bank[0][4] = five_word[4] - 32;
 	words_bank[0][5] = '\0';
 	words_bank_len = 1;
+	fclose(five_file);
+
 	int column_active_idx = 0;
 	int line_active_idx = 0;
 	int field_letters_column_count = 5;
@@ -247,11 +260,33 @@ void set_letter() {
 				printf("---------");
 			}
 		}
+		left = 90;
+		top = 2;
+		for (i = 0; i < words_bank_len; i++)
+		{
+			short btn_bg = clr_bg;
+			gotoxy(left, top);
+			con_set_color(clr_font, btn_bg);
+			printf("-----------------------");
+			top++;
+			gotoxy(left, top);
+			printf("|                   ");
 
+			gotoxy(left + 12 - strlen(words_bank[i]) / 2, top);
+			printf("%s", words_bank[i]);
+
+			con_set_color(clr_font, btn_bg);
+			gotoxy(left + 22, top);
+			printf("|");
+			top++;
+			gotoxy(left, top);
+			printf("-----------------------");
+			top ++;
+		}
 		// Данные подготовлены, вывести на экран
 		con_draw_release();
 
-
+		start_turn = clock() / CLOCKS_PER_SEC;
 		while (!key_is_pressed()) // Если пользователь нажимает кнопку
 		{
 			int code = key_pressed_code();
@@ -367,7 +402,7 @@ void set_letter() {
 				}
 				break;
 			}
-			else if (code == KEY_ESC) // ESC или 'q' - выход
+			else if (code == KEY_ESC) // ESC - выход
 			{
 				return;
 			}
@@ -446,6 +481,8 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 
 		while (!key_is_pressed()) // Если пользователь нажимает кнопку
 		{
+			end_turn = clock() / CLOCKS_PER_SEC;
+			if (end_turn - start_turn >= 60) return 1;
 			int code = key_pressed_code();
 			if (code == 'w' || code == 'W' || code == (unsigned char)'ц' || code == (unsigned char)'Ц') // Если это стрелка вверх
 			{
@@ -665,7 +702,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 								}
 								if (flag_compare != 1) {
 									for (int i = 0; i < word_length; i++) {
-										words_bank[words_bank_len][i] = field_letters[field_word[compare_idx][0]][field_word[compare_idx][1]];
+										words_bank[words_bank_len][i] = field_letters[field_word[i][0]][field_word[i][1]];
 									}
 									words_bank_len += 1;
 									return 0;
