@@ -425,6 +425,7 @@ void set_letter() {
 
 	} // while(1)
 }
+
 int set_word(char field_letters[5][5], int column_active_idx, int line_active_idx) {
 	int i, j;
 	char field_word[25][2];
@@ -997,7 +998,7 @@ void difficulty_selection()
 					break;
 				}
 			}
-			else if (code == code == 's' || code == 'S' || code == (unsigned char)'ы' || code == (unsigned char)'Ы') // Если стрелка вниз
+			else if (code == 's' || code == 'S' || code == (unsigned char)'ы' || code == (unsigned char)'Ы') // Если стрелка вниз
 			{
 				// То переход к нижнему пункту (если это возможно)
 				if (menu_active_idx + 1 < menu_items_count)
