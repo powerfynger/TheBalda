@@ -11,7 +11,7 @@
 #define  clr_font				CON_CLR_WHITE_LIGHT
 #define  clr_bg_chosen			CON_CLR_GREEN
 #define  clr_bg_warning         CON_CLR_YELLOW
-
+#define  five_count             2236
 void main_menu();
 void demo_animation();
 void demo_colors();
@@ -194,7 +194,7 @@ void set_letter() {
 	char five_word[7];
 	five_file = fopen("fiveword.txt", "r");
 	srand(time(NULL));
-	int r = rand() % 4164;
+	int r = rand() % five_count;
 	system("cls");
 	for (i = 1; i != r; i++) fgets(five_word, 7, five_file);
 	field_letters[2][0] = five_word[0] - 32;
