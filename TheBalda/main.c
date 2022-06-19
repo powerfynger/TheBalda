@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <time.h>
 #include <windows.h>
 
 
@@ -31,8 +30,6 @@ int difficult = 1; //сложность изначально "лёгкий"
 int turn = 1;
 char words_bank[21][31];
 int words_bank_len = 0;
-clock_t start_turn;
-clock_t end_turn;
 
 
 int main()
@@ -294,7 +291,6 @@ void set_letter() {
 		// Данные подготовлены, вывести на экран
 		con_draw_release();
 
-		start_turn = clock() / CLOCKS_PER_SEC;
 		while (!key_is_pressed()) // Если пользователь нажимает кнопку
 		{
 			int code = key_pressed_code();
@@ -513,8 +509,6 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 
 		while (!key_is_pressed()) // Если пользователь нажимает кнопку
 		{
-			end_turn = clock() / CLOCKS_PER_SEC;
-			if (end_turn - start_turn >= 60) return 1;
 			int code = key_pressed_code();
 			if (code == 'w' || code == 'W' || code == (unsigned char)'ц' || code == (unsigned char)'Ц') // Если это стрелка вверх
 			{
