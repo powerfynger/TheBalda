@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ctime>
+#include <time.h>
+#include <windows.h>
 
 #define	 clr_bg					CON_CLR_BLACK
 #define  clr_bg_active			CON_CLR_RED
@@ -32,6 +33,8 @@ clock_t end_turn;
 int main()
 {
 	system("chcp 1251");
+	HWND hWnd = GetForegroundWindow();
+	ShowWindow(hWnd, SW_MAXIMIZE);
 	system("cls");
 	FILE* file;
 	file = fopen("singular.txt", "r");
@@ -41,7 +44,7 @@ int main()
 	}
 	fclose(file);
 	// Инициализируется консоль, скрывается курсор
-	con_init(100, 25);
+	con_init(100, 50);
 	// system("mode con cols=100 lines=25");
 	show_cursor(0);
 
@@ -476,6 +479,29 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 				printf("---------");
 			}
 		}
+		left = 90;
+		top = 2;
+		for (i = 0; i < words_bank_len; i++)
+		{
+			short btn_bg = clr_bg;
+			gotoxy(left, top);
+			con_set_color(clr_font, btn_bg);
+			printf("-----------------------");
+			top++;
+			gotoxy(left, top);
+			printf("|                   ");
+
+			gotoxy(left + 12 - strlen(words_bank[i]) / 2, top);
+			printf("%s", words_bank[i]);
+
+			con_set_color(clr_font, btn_bg);
+			gotoxy(left + 22, top);
+			printf("|");
+			top++;
+			gotoxy(left, top);
+			printf("-----------------------");
+			top++;
+		}
 		// Данные подготовлены, вывести на экран
 		con_draw_release();
 
@@ -664,6 +690,29 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 								gotoxy(left, top);
 								printf("---------");
 							}
+						}
+						left = 90;
+						top = 2;
+						for (i = 0; i < words_bank_len; i++)
+						{
+							short btn_bg = clr_bg;
+							gotoxy(left, top);
+							con_set_color(clr_font, btn_bg);
+							printf("-----------------------");
+							top++;
+							gotoxy(left, top);
+							printf("|                   ");
+
+							gotoxy(left + 12 - strlen(words_bank[i]) / 2, top);
+							printf("%s", words_bank[i]);
+
+							con_set_color(clr_font, btn_bg);
+							gotoxy(left + 22, top);
+							printf("|");
+							top++;
+							gotoxy(left, top);
+							printf("-----------------------");
+							top++;
 						}
 						// Данные подготовлены, вывести на экран
 						con_draw_release();
