@@ -6,12 +6,17 @@
 #include <time.h>
 #include <windows.h>
 
+
+#define  DICT					"dict.txt"
+#define  START_WORDS			"start_words.txt"
 #define	 clr_bg					CON_CLR_BLACK
 #define  clr_bg_active			CON_CLR_RED
 #define  clr_font				CON_CLR_WHITE_LIGHT
 #define  clr_bg_chosen			CON_CLR_GREEN
 #define  clr_bg_warning         CON_CLR_YELLOW
 #define  five_count             2236
+
+
 void main_menu();
 void demo_animation();
 void demo_colors();
@@ -37,7 +42,7 @@ int main()
 	ShowWindow(hWnd, SW_MAXIMIZE);
 	system("cls");
 	FILE* file;
-	file = fopen("singular.txt", "r");
+	file = fopen(DICT, "r");
 	if (file == NULL) {
 		printf("I just don't have the words to describe the pain i feel!");
 		return 1;
@@ -192,7 +197,7 @@ void set_letter() {
 	//Случайнок слово в начале
 	FILE* five_file;
 	char five_word[7];
-	five_file = fopen("fiveword.txt", "r");
+	five_file = fopen(START_WORDS, "r");
 	srand(time(NULL));
 	int r = rand() % five_count;
 	system("cls");
@@ -727,7 +732,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 					else 
 					{
 						//Проверка на наличие слова в словаре
-						FILE* file = fopen("singular.txt", "r");
+						FILE* file = fopen(DICT, "r");
 						char str[31];
 						int flag_compare = 0;
 						while (!feof(file))

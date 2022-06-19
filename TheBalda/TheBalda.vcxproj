@@ -25,9 +25,6 @@
   <ItemGroup>
     <ClInclude Include="wincon.h" />
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\..\..\..\Desktop\dic.txt" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
