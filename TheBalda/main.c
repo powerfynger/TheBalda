@@ -14,8 +14,9 @@
 #define  clr_bg_chosen			CON_CLR_GREEN
 #define  clr_bg_warning         CON_CLR_YELLOW
 #define  five_count             2236
-
-
+#define  x_coord_field          80
+#define  y_coord_field          5
+#define  x_coord_menu           x_coord_field + 14
 void main_menu();
 void demo_animation();
 void demo_colors();
@@ -78,8 +79,8 @@ void main_menu()
 	short clr_font = CON_CLR_WHITE_LIGHT;*/
 	while (1)
 	{
-		int left = 50;
-		int top = 3;
+		int left = x_coord_menu;
+		int top = y_coord_field;
 		int b;
 
 		// Заблокировать отрисовку
@@ -227,8 +228,8 @@ void set_letter() {
 	int field_letters_line_count = 5;
 	while (1)
 	{
-		int left = 40;
-		int top = 3;
+		int left = x_coord_field;
+		int top = y_coord_field;
 		int i, j;
 		short btn_bg;
 		// Заблокировать отрисовку
@@ -242,8 +243,8 @@ void set_letter() {
 		for (i = 0; i < field_letters_column_count; i++)
 		{
 			for (j = 0; j < field_letters_line_count; j++) {
-				left = 40 + j * 9;
-				top = 3 + i * 5;
+				left = x_coord_field + j * 9;
+				top = y_coord_field + i * 5;
 				btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
 				if (i == column_active_idx && j == line_active_idx)
 					btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
@@ -351,8 +352,8 @@ void set_letter() {
 					|| line_active_idx != 4 && field_letters[column_active_idx][line_active_idx + 1] == '\0')
 					&& (line_active_idx == 0 && field_letters[column_active_idx][4] == '\0'
 					|| line_active_idx != 0 && field_letters[column_active_idx][line_active_idx - 1] == '\0')) break;
-				left = 40 + line_active_idx * 9;
-				top = 3 + column_active_idx * 5;
+				left = x_coord_field + line_active_idx * 9;
+				top = y_coord_field + column_active_idx * 5;
 				btn_bg = clr_bg_chosen;
 
 				gotoxy(left, top);
@@ -422,8 +423,8 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 	int line_letter_idx = line_active_idx;
 	while (1)
 	{
-		int left = 40;
-		int top = 3;
+		int left = x_coord_field;
+		int top = y_coord_field;
 		int i, j, k, n;
 		short btn_bg;
 		int flag = 0;
@@ -437,8 +438,8 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 		for (i = 0; i < 5; i++)
 		{
 			for (j = 0; j < 5; j++) {
-				left = 40 + j * 9;
-				top = 3 + i * 5;
+				left = x_coord_field + j * 9;
+				top = y_coord_field + i * 5;
 				btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
 				if (i == column_active_idx && j == line_active_idx)
 					btn_bg = clr_bg_chosen; // Если кнопка активна - то рисуется другим цветом
@@ -662,8 +663,8 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 					}
 					if (flag == 0)
 					{
-						left = 40;
-						top = 3;
+						left = x_coord_field;
+						top = y_coord_field;
 						// Заблокировать отрисовку
 						con_draw_lock();
 
@@ -674,8 +675,8 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 						for (i = 0; i < 5; i++)
 						{
 							for (j = 0; j < 5; j++) {
-								left = 40 + j * 9;
-								top = 3 + i * 5;
+								left = x_coord_field + j * 9;
+								top = y_coord_field + i * 5;
 								btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
 								if (i == column_letter_idx && j == line_letter_idx)
 									btn_bg = clr_bg_warning; // Если это ячейка с не попавшей в слово буквой, то подсвечиваем жёлтым
@@ -781,13 +782,13 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 	}
 }
 void show_score(int left, int top, int btn_bg) {
-	left = 10;
-	top = 3;
+	left = x_coord_field - 30;
+	top = y_coord_field - 3;
 	btn_bg = clr_bg;
 	con_set_color(clr_font, btn_bg);
 	gotoxy(left, top);
 	printf("%s", "Игрок   Компьютер");
-	left = 12;
+	left = x_coord_field - 28;
 	top++;
 	gotoxy(left, top);
 	printf("%d", h_score);
@@ -796,13 +797,13 @@ void show_score(int left, int top, int btn_bg) {
 }
 
 void show_words_bank(int left, int top, int btn_bg) {
-	left = 90;
-	top = 0;
+	left = x_coord_field + 50;
+	top = y_coord_field - 3;
 	for (int i = 0; i < words_bank_len; i++)
 	{
 		if (i >= 10) {
-			left = 90 + 24;
-			top = 0;
+			left = x_coord_field + 40 + 24;
+			top = y_coord_field - 3;
 		}
 		btn_bg = clr_bg;
 		gotoxy(left, top);
@@ -834,8 +835,8 @@ void settings_menu()
 	short clr_font = CON_CLR_WHITE_LIGHT;*/
 	while (1)
 	{
-		int left = 50;
-		int top = 3;
+		int left = x_coord_menu;
+		int top = y_coord_field;
 		int b;
 
 		// Заблокировать отрисовку
@@ -955,8 +956,8 @@ void difficulty_selection()
 	//short clr_bg_chosen = CON_CLR_RED_LIGHT;
 	while (1)
 	{
-		int left = 50;
-		int top = 3;
+		int left = x_coord_menu;
+		int top = y_coord_field;
 		int b;
 
 		// Заблокировать отрисовку
@@ -1088,8 +1089,8 @@ void first_turn_selection() {
 	//short clr_font = CON_CLR_WHITE_LIGHT;
 	while (1)
 	{
-		int left = 50;
-		int top = 3;
+		int left = x_coord_menu;
+		int top = y_coord_field;
 		int b;
 
 		// Заблокировать отрисовку
