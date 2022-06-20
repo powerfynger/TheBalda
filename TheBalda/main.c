@@ -25,12 +25,14 @@ void settings_menu();
 void difficulty_selection();
 void first_turn_selection();
 void set_letter();
+void show_score(int left, int top, int btn_bg);
+void show_words_bank(int left, int top, int btn_bg);
 int set_word(char field_letters[5][5], int column_active_idx, int line_active_idx);
 int difficult = 1; //сложность изначально "лёгкий"
 int turn = 1;
 char words_bank[21][31];
 int words_bank_len = 0;
-
+int h_score, c_score;
 
 int main()
 {
@@ -45,11 +47,17 @@ int main()
 		return 1;
 	}
 	fclose(file);
+	file = fopen(START_WORDS, "r");
+	if (file == NULL) {
+		printf("I just don't have the words with five letters to describe the pain i feel!");
+		return 1;
+	}
+	fclose(file);
 	// Инициализируется консоль, скрывается курсор
 	con_init(100, 50);
 	// system("mode con cols=100 lines=25");
 	show_cursor(0);
-
+	h_score = 0, c_score = 0;
 	// Запуск главного меню
 	main_menu();
 
@@ -71,7 +79,7 @@ void main_menu()
 	while (1)
 	{
 		int left = 50;
-		int top = 2;
+		int top = 3;
 		int b;
 
 		// Заблокировать отрисовку
@@ -220,7 +228,7 @@ void set_letter() {
 	while (1)
 	{
 		int left = 40;
-		int top = 2;
+		int top = 3;
 		int i, j;
 		short btn_bg;
 		// Заблокировать отрисовку
@@ -230,11 +238,12 @@ void set_letter() {
 		con_set_color(clr_font, clr_bg);
 		clrscr();
 		// Цикл отрисовывает кнопку
+
 		for (i = 0; i < field_letters_column_count; i++)
 		{
 			for (j = 0; j < field_letters_line_count; j++) {
 				left = 40 + j * 9;
-				top = 2 + i * 5;
+				top = 3 + i * 5;
 				btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
 				if (i == column_active_idx && j == line_active_idx)
 					btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
@@ -265,29 +274,11 @@ void set_letter() {
 				printf("---------");
 			}
 		}
-		left = 90;
-		top = 2;
-		for (i = 0; i < words_bank_len; i++)
-		{
-			short btn_bg = clr_bg;
-			gotoxy(left, top);
-			con_set_color(clr_font, btn_bg);
-			printf("-----------------------");
-			top++;
-			gotoxy(left, top);
-			printf("|                   ");
 
-			gotoxy(left + 12 - strlen(words_bank[i]) / 2, top);
-			printf("%s", words_bank[i]);
+		show_words_bank(left, top, btn_bg);
 
-			con_set_color(clr_font, btn_bg);
-			gotoxy(left + 22, top);
-			printf("|");
-			top++;
-			gotoxy(left, top);
-			printf("-----------------------");
-			top ++;
-		}
+		show_score(left, top, btn_bg);
+
 		// Данные подготовлены, вывести на экран
 		con_draw_release();
 
@@ -361,7 +352,7 @@ void set_letter() {
 					&& (line_active_idx == 0 && field_letters[column_active_idx][4] == '\0'
 					|| line_active_idx != 0 && field_letters[column_active_idx][line_active_idx - 1] == '\0')) break;
 				left = 40 + line_active_idx * 9;
-				top = 2 + column_active_idx * 5;
+				top = 3 + column_active_idx * 5;
 				btn_bg = clr_bg_chosen;
 
 				gotoxy(left, top);
@@ -408,6 +399,7 @@ void set_letter() {
 			}
 			else if (code == KEY_ESC) // ESC - выход
 			{
+				h_score = 0, c_score = 0;
 				return;
 			}
 
@@ -431,7 +423,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 	while (1)
 	{
 		int left = 40;
-		int top = 2;
+		int top = 3;
 		int i, j, k, n;
 		short btn_bg;
 		int flag = 0;
@@ -446,7 +438,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 		{
 			for (j = 0; j < 5; j++) {
 				left = 40 + j * 9;
-				top = 2 + i * 5;
+				top = 3 + i * 5;
 				btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
 				if (i == column_active_idx && j == line_active_idx)
 					btn_bg = clr_bg_chosen; // Если кнопка активна - то рисуется другим цветом
@@ -481,29 +473,10 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 				printf("---------");
 			}
 		}
-		left = 90;
-		top = 2;
-		for (i = 0; i < words_bank_len; i++)
-		{
-			short btn_bg = clr_bg;
-			gotoxy(left, top);
-			con_set_color(clr_font, btn_bg);
-			printf("-----------------------");
-			top++;
-			gotoxy(left, top);
-			printf("|                   ");
 
-			gotoxy(left + 12 - strlen(words_bank[i]) / 2, top);
-			printf("%s", words_bank[i]);
+		show_words_bank(left, top, btn_bg);
 
-			con_set_color(clr_font, btn_bg);
-			gotoxy(left + 22, top);
-			printf("|");
-			top++;
-			gotoxy(left, top);
-			printf("-----------------------");
-			top++;
-		}
+		show_score(left, top, btn_bg);
 		// Данные подготовлены, вывести на экран
 		con_draw_release();
 
@@ -648,7 +621,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 					if (flag == 0)
 					{
 						left = 40;
-						top = 2;
+						top = 3;
 						// Заблокировать отрисовку
 						con_draw_lock();
 
@@ -660,7 +633,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 						{
 							for (j = 0; j < 5; j++) {
 								left = 40 + j * 9;
-								top = 2 + i * 5;
+								top = 3 + i * 5;
 								btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
 								if (i == column_letter_idx && j == line_letter_idx)
 									btn_bg = clr_bg_warning; // Если это ячейка с не попавшей в слово буквой, то подсвечиваем жёлтым
@@ -692,7 +665,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 							}
 						}
 						left = 90;
-						top = 2;
+						top = 3;
 						for (i = 0; i < words_bank_len; i++)
 						{
 							short btn_bg = clr_bg;
@@ -754,6 +727,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 										words_bank[words_bank_len][i] = field_letters[field_word[i][0]][field_word[i][1]];
 									}
 									words_bank_len += 1;
+									h_score += word_length;
 									return 0;
 								}
 							}
@@ -783,7 +757,49 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 
 	}
 }
+void show_score(int left, int top, int btn_bg) {
+	left = 10;
+	top = 3;
+	con_set_color(clr_font, btn_bg);
+	gotoxy(left, top);
+	printf("%s", "Игрок   Компьютер");
+	left = 12;
+	top++;
+	gotoxy(left, top);
+	printf("%d", h_score);
+	gotoxy(left + 10, top);
+	printf("%d", c_score);
+}
 
+void show_words_bank(int left, int top, int btn_bg) {
+	left = 90;
+	top = 0;
+	for (int i = 0; i < words_bank_len; i++)
+	{
+		if (i >= 10) {
+			left = 90 + 24;
+			top = 0;
+		}
+		short btn_bg = clr_bg;
+		gotoxy(left, top);
+		con_set_color(clr_font, btn_bg);
+		printf("-----------------------");
+		top++;
+		gotoxy(left, top);
+		printf("|                   ");
+
+		gotoxy(left + 12 - strlen(words_bank[i]) / 2, top);
+		printf("%s", words_bank[i]);
+
+		con_set_color(clr_font, btn_bg);
+		gotoxy(left + 22, top);
+		printf("|");
+		top++;
+		gotoxy(left, top);
+		printf("-----------------------");
+		top++;
+	}
+}
 void settings_menu()
 {
 	const char* menu_items[] = { "Настройки" ,"Сложность", "Первый ход", "Назад или ESC"};
@@ -795,7 +811,7 @@ void settings_menu()
 	while (1)
 	{
 		int left = 50;
-		int top = 2;
+		int top = 3;
 		int b;
 
 		// Заблокировать отрисовку
@@ -916,7 +932,7 @@ void difficulty_selection()
 	while (1)
 	{
 		int left = 50;
-		int top = 2;
+		int top = 3;
 		int b;
 
 		// Заблокировать отрисовку
@@ -1049,7 +1065,7 @@ void first_turn_selection() {
 	while (1)
 	{
 		int left = 50;
-		int top = 2;
+		int top = 3;
 		int b;
 
 		// Заблокировать отрисовку
