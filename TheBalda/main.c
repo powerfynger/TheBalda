@@ -491,14 +491,24 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 						for (n = 0; n < word_length; n++) {
 							if (column_active_idx - 1 == field_word[n][0] && line_active_idx == field_word[n][1]) flag = 1; //прошли уже эту клетку?
 						}
-						if (field_letters[column_active_idx - 1][line_active_idx] != '\0' && flag != 1) {
-							column_active_idx--;
+						if (field_letters[column_active_idx - 1][line_active_idx] != '\0') {
+							//Добавляем букву
+							if (flag != 1) {
+								column_active_idx--;
+								field_word[word_length][0] = column_active_idx;
+								field_word[word_length][1] = line_active_idx;
+								word_length++;
+							}
+							//Оформляем возврат
+							else {
+								if (word_length > 1 && field_word[word_length - 2][0] == column_active_idx - 1) {
+									column_active_idx--;
+									word_length--;
+									memset(field_word[word_length], 6, 2 * sizeof(char));
+								}
+							}
 						}
 					}
-					//добавляем букву в слово
-					word_length++;
-					field_word[word_length - 1][0] = column_active_idx;
-					field_word[word_length - 1][1] = line_active_idx;
 				}
 				else
 				{
@@ -522,14 +532,24 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 						for (n = 0; n < word_length; n++) {
 							if (column_active_idx + 1 == field_word[n][0] && line_active_idx == field_word[n][1]) flag = 1;//прошли уже эту клетку?
 						}
-						if (field_letters[column_active_idx + 1][line_active_idx] != '\0' && flag != 1) {
-							column_active_idx++;
+						if (field_letters[column_active_idx + 1][line_active_idx] != '\0') {
+							//Добавляем букву
+							if (flag != 1) {
+								column_active_idx++;
+								field_word[word_length][0] = column_active_idx;
+								field_word[word_length][1] = line_active_idx;
+								word_length++;
+							}
+							//Оформляем возврат
+							else {
+								if (word_length > 1 && field_word[word_length - 2][0] == column_active_idx + 1) {
+									column_active_idx++;
+									word_length--;
+									memset(field_word[word_length], 6, 2 * sizeof(char));
+								}
+							}
 						}
 					}
-					//добавляем букву в слово
-					word_length++;
-					field_word[word_length - 1][0] = column_active_idx;
-					field_word[word_length - 1][1] = line_active_idx;
 				}
 				else
 				{
@@ -552,14 +572,25 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 						for (n = 0; n < word_length; n++) {
 							if (line_active_idx + 1 == field_word[n][1] && column_active_idx == field_word[n][0]) flag = 1;//прошли уже эту клетку?
 						}
-						if (field_letters[column_active_idx][line_active_idx + 1] != '\0' && flag != 1) {
-							line_active_idx++;
+						if (field_letters[column_active_idx][line_active_idx + 1] != '\0') {
+							//Добавляем букву
+							if (flag != 1) {
+								line_active_idx++;
+								field_word[word_length][0] = column_active_idx;
+								field_word[word_length][1] = line_active_idx;
+								word_length++;
+							}
+							//Оформляем возврат
+							else {
+								if (word_length > 1 && field_word[word_length - 2][1] == line_active_idx + 1) {
+									line_active_idx++;
+									word_length--;
+									memset(field_word[word_length], 6, 2 * sizeof(char));
+								}
+							}
 						}
+
 					}
-					//добавляем букву в слово
-					word_length++;
-					field_word[word_length - 1][0] = column_active_idx;
-					field_word[word_length - 1][1] = line_active_idx;
 				}
 				else
 				{
@@ -582,14 +613,25 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 						for (n = 0; n < word_length; n++) {
 							if (line_active_idx - 1 == field_word[n][1] && column_active_idx == field_word[n][0]) flag = 1;//прошли уже эту клетку?
 						}
-						if (field_letters[column_active_idx][line_active_idx - 1] != '\0' && flag != 1) {
-							line_active_idx--;
+						if (field_letters[column_active_idx][line_active_idx - 1] != '\0'){
+							//Добавляем букву
+							if (flag != 1) {
+								line_active_idx--;
+								field_word[word_length][0] = column_active_idx;
+								field_word[word_length][1] = line_active_idx;
+								word_length++;
+							}
+							//Оформляем возврат
+							else {
+								if (word_length > 1 && field_word[word_length - 2][1] == line_active_idx - 1) {
+									line_active_idx--;
+									word_length--;
+									memset(field_word[word_length], 6, 2*sizeof(char));
+								}
+							}
 						}
 					}
 					//добавляем букву в слово
-					word_length++;
-					field_word[word_length - 1][0] = column_active_idx;
-					field_word[word_length - 1][1] = line_active_idx;
 				}
 				else
 				{
@@ -664,29 +706,10 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 								printf("---------");
 							}
 						}
-						left = 90;
-						top = 3;
-						for (i = 0; i < words_bank_len; i++)
-						{
-							short btn_bg = clr_bg;
-							gotoxy(left, top);
-							con_set_color(clr_font, btn_bg);
-							printf("-----------------------");
-							top++;
-							gotoxy(left, top);
-							printf("|                   ");
 
-							gotoxy(left + 12 - strlen(words_bank[i]) / 2, top);
-							printf("%s", words_bank[i]);
+						show_words_bank(left, top, btn_bg);
 
-							con_set_color(clr_font, btn_bg);
-							gotoxy(left + 22, top);
-							printf("|");
-							top++;
-							gotoxy(left, top);
-							printf("-----------------------");
-							top++;
-						}
+						show_score(left, top, btn_bg);
 						// Данные подготовлены, вывести на экран
 						con_draw_release();
 
@@ -760,6 +783,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 void show_score(int left, int top, int btn_bg) {
 	left = 10;
 	top = 3;
+	btn_bg = clr_bg;
 	con_set_color(clr_font, btn_bg);
 	gotoxy(left, top);
 	printf("%s", "Игрок   Компьютер");
@@ -780,7 +804,7 @@ void show_words_bank(int left, int top, int btn_bg) {
 			left = 90 + 24;
 			top = 0;
 		}
-		short btn_bg = clr_bg;
+		btn_bg = clr_bg;
 		gotoxy(left, top);
 		con_set_color(clr_font, btn_bg);
 		printf("-----------------------");
