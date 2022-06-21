@@ -8,6 +8,7 @@
 
 #define  DICT					"dict.txt"
 #define  START_WORDS			"start_words.txt"
+#define  MAX_WORD_LEN			30
 #define	 clr_bg					CON_CLR_BLACK
 #define  clr_bg_active			CON_CLR_RED
 #define  clr_font				CON_CLR_WHITE_LIGHT
@@ -17,10 +18,12 @@
 #define  x_coord_field          80
 #define  y_coord_field          5
 #define  x_coord_menu           x_coord_field + 14
+
+
+//void demo_animation();
+//void demo_colors();
+//void demo_input();
 void main_menu();
-void demo_animation();
-void demo_colors();
-void demo_input();
 void about();
 void settings_menu();
 void difficulty_selection();
@@ -30,11 +33,57 @@ int surrender_window();
 void show_score(int left, int top, int btn_bg);
 void show_words_bank(int left, int top, int btn_bg);
 int set_word(char field_letters[5][5], int column_active_idx, int line_active_idx);
+int search_letter(char letter, NODE* node);
+
+
+
+/*Структура узла словарного и инвертированного префиксных деревьев*/
+typedef struct node {
+	char letters[32];
+	struct node* next[32];
+	char* word;
+}NODE;
+
+NODE* root, root_inv;
+char* possible_words[MAX_WORD_LEN];
 int difficult = 1; //сложность изначально "лёгкий"
 int turn = 1;
 char words_bank[21][31];
 int words_bank_len = 0;
 int h_score, c_score;
+
+
+int search_letter_tree(char letter, NODE* node) {
+	for (int i = 0; i < 32; i++) {
+		if (node->letters[i] == NULL) {
+			return i;
+		}
+		if (node->letters[i] == letter) {
+			return i;
+		}
+	}
+	return 1;
+}
+
+void insert_word_tree(char* word, NODE* root) {
+
+	NODE* node = root;
+	for (int i = 0; i < strlen(word); i++) {
+		int result = search_letter_tree(word[i], node);
+		if (node->letters[result] == NULL) {
+			node->letters[result] = word[i];
+		}
+		if (node->next[result] == NULL) {
+			NODE* new_node = (NODE*)malloc(sizeof(NODE));
+			if (new_node == NULL) {
+				/*Нет доступной памяти*/
+				return -1;
+			}
+			node->next[result] = new_node;
+		}
+		node = node->next[result];
+	}
+}
 
 int main()
 {
@@ -65,8 +114,6 @@ int main()
 
 	return 0;
 }
-
-
 
 
 // Поддержка главного меню
