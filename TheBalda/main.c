@@ -26,6 +26,7 @@ void settings_menu();
 void difficulty_selection();
 void first_turn_selection();
 void set_letter();
+int surrender_window();
 void show_score(int left, int top, int btn_bg);
 void show_words_bank(int left, int top, int btn_bg);
 int set_word(char field_letters[5][5], int column_active_idx, int line_active_idx);
@@ -77,12 +78,13 @@ void main_menu()
 	/*short clr_bg = CON_CLR_BLACK;
 	short clr_bg_active = CON_CLR_RED;
 	short clr_font = CON_CLR_WHITE_LIGHT;*/
+	int left = x_coord_menu;
+	int top = y_coord_field;
+	int b;
 	while (1)
 	{
-		int left = x_coord_menu;
-		int top = y_coord_field;
-		int b;
-
+		left = x_coord_menu;
+		top = y_coord_field;
 		// Заблокировать отрисовку
 		con_draw_lock();
 
@@ -398,10 +400,20 @@ void set_letter() {
 				}
 				break;
 			}
+			else if (code == KEY_BACK) {
+				int pass_ac = pass_turn_window();
+				if (pass_ac == 1) {
+					break;
+				}
+			}
 			else if (code == KEY_ESC) // ESC - выход
 			{
-				h_score = 0, c_score = 0;
-				return;
+				int sur_ac = surrender_window();
+				if (sur_ac == 1) {
+					h_score = 0, c_score = 0;
+					return;
+				}
+				break;
 			}
 
 			pause(40); // Небольная пауза (чтобы не загружать процессор)
@@ -766,6 +778,12 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 				}
 				break;
 			}
+			else if (code == KEY_BACK) {
+				int pass_ac = pass_turn_window();
+				if (pass_ac == 1) {
+					return 1;
+				}
+			}
 			else if (code == KEY_ESC) // ESC - выход
 			{
 				return 1;
@@ -945,6 +963,182 @@ void settings_menu()
 	} // while(1)
 }
 
+int surrender_window() {
+	const char* menu_items[] = { "Да", "Нет" };
+	int menu_active_idx = 1;
+	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
+	while (1) {
+		int left = x_coord_menu;
+		int top = y_coord_field;
+		int b;
+		int code;
+
+		// Заблокировать отрисовку
+		con_draw_lock();
+
+		// Очистка экрана
+		con_set_color(clr_font, clr_bg);
+		clrscr();
+		// Цикл отрисовывает кнопку
+		short btn_bg = clr_bg;
+		gotoxy(left, top);
+		printf("Вы уверены, что хотите сдаться?");
+		top += 2;
+		for (b = 0; b < 2; b++)
+		{
+			btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
+			if (b == menu_active_idx)
+				btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
+			gotoxy(left, top);
+			con_set_color(clr_font, btn_bg);
+			printf("%s", menu_items[b]);
+			left += 3;
+		}
+		con_draw_release();
+
+		while (!key_is_pressed()) // Если пользователь нажимает кнопку
+		{
+			code = key_pressed_code();
+			if (code == 'a' || code == 'A' || code == (unsigned char)'ф' || code == (unsigned char)'Ф')
+			{
+				if (menu_active_idx > 0)
+				{
+					menu_active_idx--;
+					break;
+				}
+				else
+				{
+					menu_active_idx = 1;
+					break;
+				}
+			}
+			else if (code == 'd' || code == 'D' || code == (unsigned char)'в' || code == (unsigned char)'В')
+			{
+				if (menu_active_idx < 1)
+				{
+					menu_active_idx++;
+					break;
+				}
+				else
+				{
+					menu_active_idx = 0;
+					break;
+				}
+			}
+			else if (code == KEY_ESC || code == 'q' || code == 'Q' ||
+				code == (unsigned char)'й' || code == (unsigned char)'Й') // ESC или 'q' - выход
+			{
+				return 0;
+			}
+			else if (code == KEY_ENTER) // Нажата кнопка Enter
+			{
+				if (menu_active_idx == 1) // Выбран первый пункт - это выход
+					return 0;
+
+				if (menu_active_idx == 0)// Выбран второй пункт - это выход
+					return 1;
+			}
+
+
+			pause(40); // Небольная пауза (чтобы не загружать процессор)
+		} // while (!key_is_pressed())
+
+
+		// "Съедается" оставшийся ввод
+		while (key_is_pressed())
+			key_pressed_code();
+
+	}
+}
+
+int pass_turn_window() {
+	const char* menu_items[] = { "Да", "Нет" };
+	int menu_active_idx = 1;
+	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
+	while (1) {
+		int left = x_coord_menu;
+		int top = y_coord_field;
+		int b;
+		int code;
+
+		// Заблокировать отрисовку
+		con_draw_lock();
+
+		// Очистка экрана
+		con_set_color(clr_font, clr_bg);
+		clrscr();
+		// Цикл отрисовывает кнопку
+		short btn_bg = clr_bg;
+		gotoxy(left, top);
+		printf("Вы уверены, что хотите пропустить ход?");
+		top += 2;
+		for (b = 0; b < 2; b++)
+		{
+			btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
+			if (b == menu_active_idx)
+				btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
+			gotoxy(left, top);
+			con_set_color(clr_font, btn_bg);
+			printf("%s", menu_items[b]);
+			left += 3;
+		}
+		con_draw_release();
+
+		while (!key_is_pressed()) // Если пользователь нажимает кнопку
+		{
+			code = key_pressed_code();
+			if (code == 'a' || code == 'A' || code == (unsigned char)'ф' || code == (unsigned char)'Ф')
+			{
+				if (menu_active_idx > 0)
+				{
+					menu_active_idx--;
+					break;
+				}
+				else
+				{
+					menu_active_idx = 1;
+					break;
+				}
+			}
+			else if (code == 'd' || code == 'D' || code == (unsigned char)'в' || code == (unsigned char)'В')
+			{
+				if (menu_active_idx < 1)
+				{
+					menu_active_idx++;
+					break;
+				}
+				else
+				{
+					menu_active_idx = 0;
+					break;
+				}
+			}
+			else if (code == KEY_ESC || code == 'q' || code == 'Q' ||
+				code == (unsigned char)'й' || code == (unsigned char)'Й') // ESC или 'q' - выход
+			{
+				return 0;
+			}
+			else if (code == KEY_ENTER) // Нажата кнопка Enter
+			{
+				if (menu_active_idx == 1) // Выбран первый пункт - это выход
+					return 0;
+
+				if (menu_active_idx == 0)// Выбран второй пункт - это выход
+					return 1;
+			}
+
+
+			pause(40); // Небольная пауза (чтобы не загружать процессор)
+		} // while (!key_is_pressed())
+
+
+		// "Съедается" оставшийся ввод
+		while (key_is_pressed())
+			key_pressed_code();
+
+	}
+}
+
 void difficulty_selection()
 {
 	char* menu_items[] = { "Сложность" ,"Лёгкая", "Средняя", "Сложная" ,"Назад или ESC"};
@@ -1103,28 +1297,42 @@ void first_turn_selection() {
 		for (b = 0; b < menu_items_count; b++)
 		{
 			short btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
-			if (b == turn)
-				btn_bg = clr_bg_chosen;//Кнопка не активна и это текущая сложность
 			if (b == menu_active_idx)
 				btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
 
 			gotoxy(left, top);
 			con_set_color(clr_font, btn_bg);
-
-			printf("====================");
+			if (b == 0)
+				printf("~~~~~~~~~~~~~~~~~~~~");
+			else
+				printf("====================");
 			top++;
-			gotoxy(left, top);
-			printf("|                   ");
+			if (b == turn) {
+				gotoxy(left - 4, top);
+				printf("--->|                   ");
+			}
+			else {
+				gotoxy(left, top);
+				printf("|                   ");
+			}
 
 			gotoxy(left + 10 - strlen(menu_items[b]) / 2, top);
 			printf("%s", menu_items[b]);
-
 			con_set_color(clr_font, btn_bg);
-			gotoxy(left + 19, top);
-			printf("|");
+			if (b == turn) {
+				gotoxy(left + 19, top);
+				printf("|<---");
+			}
+			else {
+				gotoxy(left + 19, top);
+				printf("|");
+			}
 			top++;
-			gotoxy(left, top);
-			printf("====================");
+			gotoxy(left, top); 
+			if (b == 0)
+				printf("~~~~~~~~~~~~~~~~~~~~");
+			else
+				printf("====================");
 			top += 2;
 		}
 
