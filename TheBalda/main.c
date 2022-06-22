@@ -541,6 +541,11 @@ void set_letter() {
 			else if (code == KEY_BACK) {
 				int pass_ac = pass_turn_window();
 				if (pass_ac == 1) {
+					for (j = 0; j < MAX_WORD_LEN; j++) {
+						words_bank[turn][j] = '\0';
+					}
+					turn++;
+					words_bank_len++;
 					break;
 				}
 			}
@@ -549,7 +554,13 @@ void set_letter() {
 				int sur_ac = surrender_window();
 				if (sur_ac == 1) {
 					show_end_game(left, top, btn_bg);
+					for (i = 0; i < words_bank_len; i++) {
+						for (j = 0; j < MAX_WORD_LEN; j++) {
+							words_bank[i][j] = '\0';
+						}
+					}
 					h_score = 0, c_score = 0;
+					turn = 1;
 					return;
 				}
 				break;
@@ -899,10 +910,11 @@ int set_word(int column_active_idx, int line_active_idx) {
 								}
 								if (flag_compare != 1) {
 									for (int i = 0; i < word_length; i++) {
-										words_bank[words_bank_len][i] = field_letters[field_word[i][0]][field_word[i][1]];
+										words_bank[turn][i] = field_letters[field_word[i][0]][field_word[i][1]];
 									}
 									words_bank_len += 1;
 									h_score += word_length;
+									turn++;
 									return 0;
 								}
 							}
@@ -920,6 +932,11 @@ int set_word(int column_active_idx, int line_active_idx) {
 			else if (code == KEY_BACK) {
 				int pass_ac = pass_turn_window();
 				if (pass_ac == 1) {
+					for (j = 0; j < MAX_WORD_LEN; j++) {
+						words_bank[turn][j] = '\0';
+					}
+					turn++;
+					words_bank_len++;
 					return 1;
 				}
 				break;
@@ -987,17 +1004,22 @@ void show_end_game(int left, int top, int btn_bg) {
 }
 
 void show_words_bank(int left, int top, int btn_bg) {
-	left = x_coord_field + 62;
-	top = y_coord_field - 3;
+	int top_player = y_coord_field - 3, top_computer = y_coord_field - 3;
 	for (int i = 0; i < words_bank_len; i++)
 	{
-		if (i == 1) {
-			left = x_coord_field + 50;
-			top = y_coord_field;
+		if (i == 0) {
+			left = x_coord_field + 62;
+			top = y_coord_field - 3;
 		}
-		if (i == 10) {
+		else if (i % 2 == 1) {
+			left = x_coord_field + 50;
+			top_player += 3;
+			top = top_player;
+		}
+		else{
 			left = x_coord_field + 50 + 24;
-			top = y_coord_field;
+			top_computer += 3;
+			top = top_computer;
 		}
 		btn_bg = clr_bg;
 		gotoxy(left, top);
@@ -1296,10 +1318,10 @@ int pass_turn_window() {
 			}
 			else if (code == KEY_ENTER) // Нажата кнопка Enter
 			{
-				if (menu_active_idx == 1) // Выбран первый пункт - это выход
+				if (menu_active_idx == 1) // Выбран первый пункт - это пропуск хода
 					return 0;
 
-				if (menu_active_idx == 0)// Выбран второй пункт - это выход
+				if (menu_active_idx == 0)
 					return 1;
 			}
 
