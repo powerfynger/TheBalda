@@ -1,14 +1,20 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+﻿/* Список возможных улучншений */
+/* 1) Добавить глобальную структуру для игрового поля? */
+
+
+
+#define _CRT_SECURE_NO_WARNINGS
 #include "wincon.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <windows.h>
 
-
 #define  DICT					"dict.txt"
 #define  START_WORDS			"start_words.txt"
+#define	 ALPHABET_POW			32
 #define  MAX_WORD_LEN			30
+#define  MAX_WORDS_COUNT		21
 #define	 clr_bg					CON_CLR_BLACK
 #define  clr_bg_active			CON_CLR_RED
 #define  clr_font				CON_CLR_WHITE_LIGHT
@@ -19,6 +25,14 @@
 #define  y_coord_field          5
 #define  x_coord_menu           x_coord_field + 14
 
+
+
+/*Структура узла словарного и инвертированного префиксных деревьев*/
+typedef struct node {
+	char letters[ALPHABET_POW];
+	struct node* next[ALPHABET_POW];
+	char* word;
+}NODE;
 
 //void demo_animation();
 //void demo_colors();
@@ -36,25 +50,20 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 int search_letter(char letter, NODE* node);
 
 
-
-/*Структура узла словарного и инвертированного префиксных деревьев*/
-typedef struct node {
-	char letters[32];
-	struct node* next[32];
-	char* word;
-}NODE;
-
-NODE* root, root_inv;
-char* possible_words[MAX_WORD_LEN];
+NODE* root_dict, root_inv;
+char* longest_word[MAX_WORD_LEN];
 int difficult = 1; //сложность изначально "лёгкий"
 int turn = 1;
-char words_bank[21][31];
+char words_bank[MAX_WORDS_COUNT][MAX_WORD_LEN];
 int words_bank_len = 0;
 int h_score, c_score;
+char field_for_search[5][5] = { {1} }; // Нужно для отметок уже отработанных клеток для хода ИИ
+UINT8 max_len = -1;
 
 
-int search_letter_tree(char letter, NODE* node) {
-	for (int i = 0; i < 32; i++) {
+/*Поиск индекса буквы внутри узла*/
+int get_letter_index(char letter, NODE* node) {
+	for (int i = 0; i < ALPHABET_POW; i++) {
 		if (node->letters[i] == NULL) {
 			return i;
 		}
@@ -65,11 +74,12 @@ int search_letter_tree(char letter, NODE* node) {
 	return 1;
 }
 
+/*Вставка слова в дерево*/
 void insert_word_tree(char* word, NODE* root) {
 
 	NODE* node = root;
 	for (int i = 0; i < strlen(word); i++) {
-		int result = search_letter_tree(word[i], node);
+		int result = get_letter_index(word[i], node);
 		if (node->letters[result] == NULL) {
 			node->letters[result] = word[i];
 		}
@@ -79,11 +89,93 @@ void insert_word_tree(char* word, NODE* root) {
 				/*Нет доступной памяти*/
 				return -1;
 			}
+			memset(new_node, 0, sizeof(NODE));
+			new_node->word = NULL;
 			node->next[result] = new_node;
 		}
 		node = node->next[result];
 	}
+	/*Вставка всего слова в поле word?*/
+	node->word = (char*)malloc(strlen(word));
+	strcpy(node->word, word);
 }
+
+/*Считывание словаря в словарное дерево*/
+void read_dict_to_tree(NODE* root) {
+	FILE* file;
+	char line[MAX_WORD_LEN + 2];
+	int len = 0;
+	if (fopen_s(&file, DICT, "r")) {
+		printf("Словарь не найден...");
+		exit(EXIT_FAILURE);
+	}
+	while (fgets(line, sizeof(line), file) != NULL) {
+		len = strlen(line) - 1;
+		(line[len] == '\n') ? line[len] = '\0' : line[len];
+		insert_word_tree(line, root);
+
+	}
+}
+
+int find_word_tree(char* word, NODE* root) {
+	NODE* node = root;
+	for (int i = 0; i < strlen(word);  i++) {
+		for (int j = 0; j < ALPHABET_POW; j++) {
+			if (node->letters[j] == NULL) {
+				return 0;
+			}
+			if (node->letters[j] == word[i]) {
+				node = node->next[j];
+				break;
+			}
+		}
+	}
+	if (node->word != NULL) {
+		return 1;
+	}
+	return 0;
+}
+
+/*int check valid -- непонятно зачем нужна*/
+
+/*int search node -- существует точно такая же функция int get_letter_index() для поиска буквы в узле*/
+
+void search_dict_tree(int x, int y, NODE* node, char* curr_word) {
+	int res = 0, checked = 0;
+	if (difficult == 2 && strlen(curr_word) >= 5) {
+		return;
+	}
+	if (node->word != NULL && strlen(curr_word) > max_len) {
+		int flag = 0;
+		for (int i = 0; words_bank[i] != NULL; i++) {
+			if (!strcmp(words_bank[i], curr_word)) {
+				flag = 1;
+				break;
+			}
+
+		}
+		if (!flag) {
+			max_len = strlen(curr_word);
+			strcpy(longest_word, curr_word);
+		}
+	}
+	if (difficult == 1) {
+		return;
+	}
+	if (field_for_search[x][y] == 0) {
+		field_for_search[x][y] = 1;
+		checked = 1;
+	}
+	//res = 
+
+}
+
+/*NODE* create добавление слова в дерево?*/
+
+//void 
+
+//field_for_search
+
 
 int main()
 {
@@ -257,16 +349,16 @@ void set_letter() {
 	int r = rand() % five_count;
 	system("cls");
 	for (i = 1; i != r; i++) fgets(five_word, 7, five_file);
-	field_letters[2][0] = five_word[0] - 32;
-	field_letters[2][1] = five_word[1] - 32;
-	field_letters[2][2] = five_word[2] - 32;
-	field_letters[2][3] = five_word[3] - 32;
-	field_letters[2][4] = five_word[4] - 32;
-	words_bank[0][0] = five_word[0] - 32;
-	words_bank[0][1] = five_word[1] - 32;
-	words_bank[0][2] = five_word[2] - 32;
-	words_bank[0][3] = five_word[3] - 32;
-	words_bank[0][4] = five_word[4] - 32;
+	field_letters[2][0] = five_word[0] - ALPHABET_POW;
+	field_letters[2][1] = five_word[1] - ALPHABET_POW;
+	field_letters[2][2] = five_word[2] - ALPHABET_POW;
+	field_letters[2][3] = five_word[3] - ALPHABET_POW;
+	field_letters[2][4] = five_word[4] - ALPHABET_POW;
+	words_bank[0][0] = five_word[0] - ALPHABET_POW;
+	words_bank[0][1] = five_word[1] - ALPHABET_POW;
+	words_bank[0][2] = five_word[2] - ALPHABET_POW;
+	words_bank[0][3] = five_word[3] - ALPHABET_POW;
+	words_bank[0][4] = five_word[4] - ALPHABET_POW;
 	words_bank[0][5] = '\0';
 	words_bank_len = 1;
 	fclose(five_file);
@@ -438,7 +530,7 @@ void set_letter() {
 						field_letters[column_active_idx][line_active_idx] = code;
 					}
 					else if (code >= (unsigned char)'а' && code <= (unsigned char)'я') {
-						field_letters[column_active_idx][line_active_idx] = code - 32;
+						field_letters[column_active_idx][line_active_idx] = code - ALPHABET_POW;
 					}
 					else break;
 					is_word = set_word(field_letters, column_active_idx, line_active_idx);
@@ -791,7 +883,7 @@ int set_word(char field_letters[5][5], int column_active_idx, int line_active_id
 							fgets(str, 30, file);
 							int compare_idx = 0;
 							while (compare_idx < word_length) {
-								if (field_letters[field_word[compare_idx][0]][field_word[compare_idx][1]] == str[compare_idx] - 32) compare_idx++;
+								if (field_letters[field_word[compare_idx][0]][field_word[compare_idx][1]] == str[compare_idx] - ALPHABET_POW) compare_idx++;
 								else break;
 							}
 							if (compare_idx == word_length && str[compare_idx] == '\n') {
