@@ -46,7 +46,7 @@ void set_letter();
 int surrender_window();
 void show_score(int left, int top, int btn_bg);
 void show_words_bank(int left, int top, int btn_bg);
-int set_word(char field_letters[5][5], int column_active_idx, int line_active_idx);
+int set_word(int column_active_idx, int line_active_idx);
 int search_letter(char letter, NODE* node);
 
 
@@ -59,7 +59,7 @@ int words_bank_len = 0;
 int h_score, c_score;
 char field_for_search[5][5] = { {1} }; // Нужно для отметок уже отработанных клеток для хода ИИ
 UINT8 max_len = -1;
-
+char field_letters[5][5];
 
 /*Поиск индекса буквы внутри узла*/
 int get_letter_index(char letter, NODE* node) {
@@ -332,7 +332,6 @@ void main_menu()
 }
 
 void set_letter() {
-	char field_letters[5][5];
 	int i, j;
 	int is_word;
 	for (i = 0; i < 5; i++) {
@@ -533,7 +532,7 @@ void set_letter() {
 						field_letters[column_active_idx][line_active_idx] = code - ALPHABET_POW;
 					}
 					else break;
-					is_word = set_word(field_letters, column_active_idx, line_active_idx);
+					is_word = set_word(column_active_idx, line_active_idx);
 					if (is_word == 1) field_letters[column_active_idx][line_active_idx] = '\0';
 					break;
 				}
@@ -566,7 +565,7 @@ void set_letter() {
 	} // while(1)
 }
 
-int set_word(char field_letters[5][5], int column_active_idx, int line_active_idx) {
+int set_word(int column_active_idx, int line_active_idx) {
 	int i, j;
 	char field_word[25][2];
 	int word_length = 0;
