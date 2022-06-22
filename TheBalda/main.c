@@ -166,7 +166,7 @@ void search_dict_tree(int x, int y, NODE* node, char* curr_word) {
 		field_for_search[x][y] = 1;
 		checked = 1;
 	}
-	//res = 
+	//res = get_letter_index(field)
 
 }
 
