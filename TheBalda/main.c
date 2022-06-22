@@ -1,4 +1,5 @@
 ﻿/* Список возможных улучншений */
+
 /* 1) Добавить глобальную структуру для игрового поля? */
 
 
@@ -140,6 +141,7 @@ int find_word_tree(char* word, NODE* root) {
 
 /*int search node -- существует точно такая же функция int get_letter_index() для поиска буквы в узле*/
 
+/*Основная функция поиска в словарном дереве*/
 void search_dict_tree(int x, int y, NODE* node, char* curr_word) {
 	int res = 0, checked = 0;
 	if (difficult == 2 && strlen(curr_word) >= 5) {
@@ -166,17 +168,123 @@ void search_dict_tree(int x, int y, NODE* node, char* curr_word) {
 		field_for_search[x][y] = 1;
 		checked = 1;
 	}
-	//res = get_letter_index(field)
+	// Проверяем все смежные клетки
+	//Верхняя клетка
+	res = get_letter_index(field_letters[x - 1][y], node);
+	if (field_letters[x - 1][y] != '\0' && field_for_search[x - 1][y] != 1 && node->letters[res] != NULL) {
+		curr_word[strlen(curr_word)] = field_letters[x - 1][y];
+		curr_word[strlen(curr_word)] = '\0';
+		search_dict_tree(x - 1, y, node->next[res], curr_word);
+		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
+	}
 
+	// Левая клетка
+	res = get_letter_index(field_letters[x - 1][y], node);
+	if (field_letters[x][y-1] != '\0' && field_for_search[x][y-1] != 1 && node->letters[res] != NULL) {
+		curr_word[strlen(curr_word)] = field_letters[x][y-1];
+		curr_word[strlen(curr_word)] = '\0';
+		search_dict_tree(x, y-1, node->next[res], curr_word);
+		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
+	}
+
+	// Нижняя клетка
+	res = get_letter_index(field_letters[x + 1][y], node);
+	if (field_letters[x + 1][y] != '\0' && field_for_search[x + 1][y] != 1 && node->letters[res] != NULL) {
+		curr_word[strlen(curr_word)] = field_letters[x + 1][y];
+		curr_word[strlen(curr_word)] = '\0';
+		search_dict_tree(x + 1, y, node->next[res], curr_word);
+		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
+	}
+
+	// Правая клетка
+	res = get_letter_index(field_letters[x][y+1], node);
+	if (field_letters[x][y+1] != '\0' && field_for_search[x][y+1] != 1 && node->letters[res] != NULL) {
+		curr_word[strlen(curr_word)] = field_letters[x][y+1];
+		curr_word[strlen(curr_word)] = '\0';
+		search_dict_tree(x, y + 1, node->next[res], curr_word);
+		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
+	}
+	(checked == 1) ? field_for_search[x][y] = 0 : field_for_search[x][y];
+	return;
 }
 
-/*NODE* create добавление слова в дерево?*/
 
-//void 
+/*Функция разворота слова(создание инвар.)*/
+void reverse_word(char* word) {
+	for (int i = 0, j = strlen(word) - 1; i < strlen(word) / 2; i++, j--) {
+		char temp = word[i];
+		word[i] = word[j];
+		word[j] = temp;
+	}
+}
 
-//field_for_search
 
+// Фукнция нужна для нахождения аналогичного узла из инвертированного дерева в словарном дереве 
+// Который в дальнейшем используется в поиске по словарному дереву
+NODE* inv_to_dict_node(char* word) {
+	reverse_word(word);
+	NODE* node = root_dict;
+	for (int i = 0; i < strlen(word); i++) {
+		for (int j = 0; j < ALPHABET_POW; j++) {
+			if (node->letters[j] == word[i]) {
+				node = node->next[j];
+				break;
+			}
+		}
+	}
+	return node;
+}
 
+/*Основная функция поиска*/
+/*
+void search_inv_tree(int x, int y, NODE* node, char* curr_word, int sub_i){
+	if (field_letters[x][y] != '\0' || field_for_search[x][y] == 1) {
+		return;
+	}
+	curr_word[sub_i] = field_letters[x][y];
+	field_for_search[x][y] = 1;
+	curr_word[sub_i + 1] = '\0';
+
+	// Проверяем все смежные клетки
+	//Верхняя клетка
+	res = get_letter_index(field_letters[x - 1][y], node);
+	if (field_letters[x - 1][y] != '\0' && field_for_search[x - 1][y] != 1 && node->letters[res] != NULL) {
+		curr_word[strlen(curr_word)] = field_letters[x - 1][y];
+		curr_word[strlen(curr_word)] = '\0';
+		search_dict_tree(x - 1, y, node->next[res], curr_word);
+		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
+	}
+
+	// Левая клетка
+	res = get_letter_index(field_letters[x - 1][y], node);
+	if (field_letters[x][y - 1] != '\0' && field_for_search[x][y - 1] != 1 && node->letters[res] != NULL) {
+		curr_word[strlen(curr_word)] = field_letters[x][y - 1];
+		curr_word[strlen(curr_word)] = '\0';
+		search_dict_tree(x, y - 1, node->next[res], curr_word);
+		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
+	}
+
+	// Нижняя клетка
+	res = get_letter_index(field_letters[x + 1][y], node);
+	if (field_letters[x + 1][y] != '\0' && field_for_search[x + 1][y] != 1 && node->letters[res] != NULL) {
+		curr_word[strlen(curr_word)] = field_letters[x + 1][y];
+		curr_word[strlen(curr_word)] = '\0';
+		search_dict_tree(x + 1, y, node->next[res], curr_word);
+		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
+	}
+
+	// Правая клетка
+	res = get_letter_index(field_letters[x][y + 1], node);
+	if (field_letters[x][y + 1] != '\0' && field_for_search[x][y + 1] != 1 && node->letters[res] != NULL) {
+		curr_word[strlen(curr_word)] = field_letters[x][y + 1];
+		curr_word[strlen(curr_word)] = '\0';
+		search_dict_tree(x, y + 1, node->next[res], curr_word);
+		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
+	}
+	(checked == 1) ? field_for_search[x][y] = 0 : field_for_search[x][y];
+	return;
+}
+*/
 int main()
 {
 	system("chcp 1251");
