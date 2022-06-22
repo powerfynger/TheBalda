@@ -48,7 +48,7 @@ void show_score(int left, int top, int btn_bg);
 void show_words_bank(int left, int top, int btn_bg);
 int set_word(int column_active_idx, int line_active_idx);
 int search_letter(char letter, NODE* node);
-
+void show_end_game(int left, int top, int btn_bg);
 
 NODE* root_dict, root_inv;
 char* longest_word[MAX_WORD_LEN];
@@ -548,6 +548,7 @@ void set_letter() {
 			{
 				int sur_ac = surrender_window();
 				if (sur_ac == 1) {
+					show_end_game(left, top, btn_bg);
 					h_score = 0, c_score = 0;
 					return;
 				}
@@ -921,6 +922,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 				if (pass_ac == 1) {
 					return 1;
 				}
+				break;
 			}
 			else if (code == KEY_ESC) // ESC - выход
 			{
@@ -952,14 +954,50 @@ void show_score(int left, int top, int btn_bg) {
 	printf("%d", c_score);
 }
 
+void show_end_game(int left, int top, int btn_bg) {
+	left = x_coord_menu;
+	top = y_coord_field;
+	btn_bg = clr_bg;
+	con_draw_lock();
+	clrscr();
+	con_set_color(clr_font, btn_bg);
+	if (h_score > c_score) {
+		gotoxy(left + 1, top);
+		printf("%s", "Человечество победило");
+	}
+	else if (h_score < c_score) {
+		gotoxy(left + 4, top);
+		printf("%s", "Машины победили");
+	}
+	else {
+		gotoxy(left + 9, top);
+		printf("%s", "Ничья");
+	}
+	top++;
+	gotoxy(left, top);
+	printf("%s", "Игрок         Компьютер");
+	left = x_coord_menu + 2;
+	top++;
+	gotoxy(left, top);
+	printf("%d", h_score);
+	gotoxy(left + 16, top);
+	printf("%d", c_score);
+	con_draw_release();
+	while (!key_is_pressed());
+}
+
 void show_words_bank(int left, int top, int btn_bg) {
-	left = x_coord_field + 50;
+	left = x_coord_field + 62;
 	top = y_coord_field - 3;
 	for (int i = 0; i < words_bank_len; i++)
 	{
-		if (i >= 10) {
-			left = x_coord_field + 40 + 24;
-			top = y_coord_field - 3;
+		if (i == 1) {
+			left = x_coord_field + 50;
+			top = y_coord_field;
+		}
+		if (i == 10) {
+			left = x_coord_field + 50 + 24;
+			top = y_coord_field;
 		}
 		btn_bg = clr_bg;
 		gotoxy(left, top);
