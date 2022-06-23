@@ -603,10 +603,11 @@ void set_letter() {
 	int field_letters_line_count = 5;
 	while (1)
 	{
+
 		if (turn % 2 == 0) {
 			bot_move();
+			found = 0;
 			turn++;
-			continue;
 		}
 		int left = x_coord_field;
 		int top = y_coord_field;
@@ -641,7 +642,7 @@ void set_letter() {
 				printf("|       ");
 
 				gotoxy(left+4, top);
-				field_letters[i][j] != 0 ? printf("%c", field_letters[i][j] - ALPHABET_POW) : printf("%c", field_letters[i][j]);
+				field_letters[i][j] != '\0' ? printf("%c", field_letters[i][j] - ALPHABET_POW) : printf("%c", field_letters[i][j]);
 				//printf("А", field_letters[i][j]);
 
 				gotoxy(left+8, top);
@@ -665,6 +666,9 @@ void set_letter() {
 
 		while (!key_is_pressed()) // Если пользователь нажимает кнопку
 		{
+			if (turn % 2 == 0) {
+				bot_move();
+			}
 			int code = key_pressed_code();
 			if (code == 'w' || code == 'W' || code == (unsigned char)'ц' || code == (unsigned char)'Ц') // Если это стрелка вверх
 			{
@@ -748,7 +752,7 @@ void set_letter() {
 				printf("|       ");
 
 				gotoxy(left + 4, top);
-				printf("%c", field_letters[column_active_idx][line_active_idx]);
+				field_letters[column_active_idx][line_active_idx] != '\0' ? printf("%c", field_letters[column_active_idx][line_active_idx] - ALPHABET_POW) : printf("%c", field_letters[column_active_idx][line_active_idx]);
 				//printf("А", field_letters[i][j]);
 
 				gotoxy(left + 8, top);
@@ -766,10 +770,10 @@ void set_letter() {
 				while (!key_is_pressed()) {
 					code = key_pressed_code();
 					if (code >= (unsigned char)'А' && code <= (unsigned char)'Я') {
-						field_letters[column_active_idx][line_active_idx] = code + ALPHABET_POW;
+						field_letters[column_active_idx][line_active_idx] = code;
 					}
 					else if (code >= (unsigned char)'а' && code <= (unsigned char)'я') {
-						field_letters[column_active_idx][line_active_idx] = code;
+						field_letters[column_active_idx][line_active_idx] = code; //- ALPHABET_POW;;
 					}
 					else break;
 					is_word = set_word(column_active_idx, line_active_idx);
@@ -781,10 +785,10 @@ void set_letter() {
 			else if (code == KEY_BACK) {
 				int pass_ac = pass_turn_window();
 				if (pass_ac == 1) {
+					turn++;
 					for (j = 0; j < MAX_WORD_LEN; j++) {
 						words_bank[turn][j] = '\0';
 					}
-					turn++;
 					words_bank_len++;
 					break;
 				}
@@ -800,7 +804,7 @@ void set_letter() {
 						}
 					}
 					h_score = 0, c_score = 0;
-					turn = 1;
+					turn = 0;
 					return;
 				}
 				break;
@@ -862,7 +866,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 				printf("|       ");
 
 				gotoxy(left + 4, top);
-				field_letters[i][j] == '\0' ? printf("%c", field_letters[i][j]) : printf("%c", field_letters[i][j]) - ALPHABET_POW;
+				field_letters[i][j] == '\0' ? printf("%c", field_letters[i][j]) : printf("%c", field_letters[i][j] - ALPHABET_POW);
 				//printf("А", field_letters[i][j]);
 
 				gotoxy(left + 8, top);
@@ -1094,7 +1098,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 								printf("|       ");
 
 								gotoxy(left + 4, top);
-								printf("%c", field_letters[i][j] - ALPHABET_POW);
+								field_letters[i][j] == '\0' ? printf("%c", field_letters[i][j]) : printf("%c", field_letters[i][j] - ALPHABET_POW);
 								//printf("А", field_letters[i][j]);
 
 								gotoxy(left + 8, top);
@@ -1170,10 +1174,10 @@ int set_word(int column_active_idx, int line_active_idx) {
 			else if (code == KEY_BACK) {
 				int pass_ac = pass_turn_window();
 				if (pass_ac == 1) {
+					turn++;
 					for (j = 0; j < MAX_WORD_LEN; j++) {
 						words_bank[turn][j] = '\0';
 					}
-					turn++;
 					words_bank_len++;
 					return 1;
 				}
