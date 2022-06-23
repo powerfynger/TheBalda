@@ -96,7 +96,6 @@ int get_letter_index(unsigned char letter, NODE* node) {
 
 /*Вставка слова в дерево*/
 void insert_word_tree(unsigned char* word, NODE* root) {
-
 	NODE* node = root;
 	for (int i = 0; i < strlen(word); i++) {
 		int result = find_node(word[i], node);
@@ -116,8 +115,10 @@ void insert_word_tree(unsigned char* word, NODE* root) {
 		node = node->next[result];
 	}
 	/*Вставка всего слова в поле word?*/
-	node->word = (char*)malloc(strlen(word));
-	strcpy(node->word, word);
+	//if (root != root_inv) {
+		node->word = (char*)malloc(strlen(word));
+		strcpy(node->word, word);
+	//}
 }
 
 /*Считывание словаря в словарное дерево*/
@@ -385,7 +386,7 @@ int bot_move() {
 			words_bank[words_bank_len][i] = longest_word[i];
 		}
 		words_bank_len += 1;
-		h_score += max_len;
+		c_score += max_len;
 		max_len = 0;
 	}
 	return 0;
