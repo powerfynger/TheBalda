@@ -170,7 +170,7 @@ int find_word_tree(unsigned char* word, NODE* root) {
 			}
 		}
 	}
-	if (node->word != NULL) {
+	if (node->word != NULL){
 		return 1;
 	}
 	return 0;
@@ -183,14 +183,14 @@ int find_word_tree(unsigned char* word, NODE* root) {
 /*Основная функция поиска в словарном дереве*/
 void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
 	int res = 0, checked = 0;
-	if (difficult == 2 && strlen(longest_word) >= 5) {
+	if (difficult == 2 && strlen(curr_word) >= 5) {
 		found = 1;
 		return;
 	}
 	if (node->word != NULL && strlen(curr_word) > max_len) {
 		int flag = 0;
 		for (int i = 0; i < words_bank_len; i++) {
-			if (!strcmp(words_bank[i], curr_word)) {
+			if (!strncmp(words_bank[i], curr_word, MAX_WORD_LEN)) {
 				flag = 1;
 				break;
 			}
@@ -213,7 +213,7 @@ void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
 	//}
 	if (field_for_search[x][y] == 0) {
 		field_for_search[x][y] = 1;
-		checked = 1;
+		checked++;
 	}
 	// Проверяем все смежные клетки
 	//Верхняя клетка
@@ -222,7 +222,7 @@ void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
 		curr_word[strlen(curr_word)] = field_letters[x - 1][y];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x - 1, y, node->next[res], curr_word);
-		if (found) return;
+		//if (found) return;
 		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
 	}
 
@@ -232,7 +232,7 @@ void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
 		curr_word[strlen(curr_word)] = field_letters[x][y-1];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x, y-1, node->next[res], curr_word);
-		if (found) return;
+		//if (found) return;
 		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
 	}
 
@@ -242,7 +242,7 @@ void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
 		curr_word[strlen(curr_word)] = field_letters[x + 1][y];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x + 1, y, node->next[res], curr_word);
-		if (found) return;
+		//if (found) return;
 		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
 	}
 
@@ -252,7 +252,7 @@ void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
 		curr_word[strlen(curr_word)] = field_letters[x][y+1];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x, y + 1, node->next[res], curr_word);
-		if (found) return;
+		//if (found) return;
 		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
 	}
 	(checked == 1) ? field_for_search[x][y] = 0 : field_for_search[x][y];
@@ -288,7 +288,7 @@ NODE* inv_to_dict_node(unsigned char* word) {
 
 /*Основная функция поиска*/
 void search_inv_tree(int x, int y, unsigned char* curr_word, int end_ind){
-	if (field_letters[x][y] == '\0' || field_for_search[x][y] == 1) {
+	if (field_letters[x][y] == '\0') {
 		return;
 	}
 	curr_word[end_ind] = field_letters[x][y];
@@ -1301,6 +1301,8 @@ int set_word(int column_active_idx, int line_active_idx) {
 											h_score += word_length;
 										else
 											c_score += word_length;
+									if (game_mode == MODE_DZEN)
+										h_score += word_length;
 									turn++;
 									return 0;
 								}
