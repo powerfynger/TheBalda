@@ -1125,7 +1125,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 					{
 						//Проверка на наличие слова в словаре
 						FILE* file = fopen(DICT, "r+");
-						char str[31];
+						unsigned char str[MAX_WORD_LEN];
 						int flag_compare = 0;
 						while (!feof(file))
 						{
