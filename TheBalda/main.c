@@ -11,6 +11,9 @@
 #include <stdlib.h>
 #include <windows.h>
 
+
+#define  INV					"inv.txt"
+#define	 LETTER_a_RUS			224
 #define  DICT					"dict.txt"
 #define  START_WORDS			"start_words.txt"
 #define	 ALPHABET_POW			32
@@ -30,7 +33,7 @@
 
 /*Структура узла словарного и инвертированного префиксных деревьев*/
 typedef struct node {
-	char letters[ALPHABET_POW];
+	unsigned char letters[ALPHABET_POW];
 	struct node* next[ALPHABET_POW];
 	char* word;
 }NODE;
@@ -51,19 +54,23 @@ int set_word(int column_active_idx, int line_active_idx);
 int search_letter(char letter, NODE* node);
 void show_end_game(int left, int top, int btn_bg);
 
-NODE* root_dict, root_inv;
-char* longest_word[MAX_WORD_LEN];
+char found = 0;
+NODE* root_dict;
+NODE* root_inv;
+unsigned char* longest_word[MAX_WORD_LEN] = {'\0'};
 int difficult = 1; //сложность изначально "лёгкий"
-int turn = 1;
+int turn = 0, turn_test = 1;
 char words_bank[MAX_WORDS_COUNT][MAX_WORD_LEN];
 int words_bank_len = 0;
 int h_score, c_score;
 char field_for_search[5][5] = { {1} }; // Нужно для отметок уже отработанных клеток для хода ИИ
-UINT8 max_len = -1;
-char field_letters[5][5];
+int max_len = 0, x_start = 0, y_start = 0, x_chosen = 0, y_chosen = 0;
+unsigned char letter_chosen = 0;
+unsigned char field_letters[5][5] = { {'\0'} };
+
 
 /*Поиск индекса буквы внутри узла*/
-int get_letter_index(char letter, NODE* node) {
+int find_node(unsigned char letter, NODE* node) {
 	for (int i = 0; i < ALPHABET_POW; i++) {
 		if (node->letters[i] == NULL) {
 			return i;
@@ -72,19 +79,31 @@ int get_letter_index(char letter, NODE* node) {
 			return i;
 		}
 	}
-	return 1;
+}
+
+/*Поиск индекса буквы внутри узла*/
+int get_letter_index(unsigned char letter, NODE* node) {
+	for (int i = 0; i < ALPHABET_POW; i++) {
+		if (node->letters[i] == NULL) {
+			return -1;
+		}
+		if (node->letters[i] == letter) {
+			return i;
+		}
+	}
+	return -1;
 }
 
 /*Вставка слова в дерево*/
-void insert_word_tree(char* word, NODE* root) {
+void insert_word_tree(unsigned char* word, NODE* root) {
 
 	NODE* node = root;
 	for (int i = 0; i < strlen(word); i++) {
-		int result = get_letter_index(word[i], node);
-		if (node->letters[result] == NULL) {
+		int result = find_node(word[i], node);
+		if (result != -1 && node->letters[result] == NULL) {
 			node->letters[result] = word[i];
 		}
-		if (node->next[result] == NULL) {
+		if (result != -1 && node->next[result] == NULL) {
 			NODE* new_node = (NODE*)malloc(sizeof(NODE));
 			if (new_node == NULL) {
 				/*Нет доступной памяти*/
@@ -106,7 +125,7 @@ void read_dict_to_tree(NODE* root) {
 	FILE* file;
 	char line[MAX_WORD_LEN + 2];
 	int len = 0;
-	if (fopen_s(&file, DICT, "r")) {
+	if (fopen_s(&file, DICT, "r+")) {
 		printf("Словарь не найден...");
 		exit(EXIT_FAILURE);
 	}
@@ -114,11 +133,27 @@ void read_dict_to_tree(NODE* root) {
 		len = strlen(line) - 1;
 		(line[len] == '\n') ? line[len] = '\0' : line[len];
 		insert_word_tree(line, root);
-
 	}
+	fclose(file);
 }
 
-int find_word_tree(char* word, NODE* root) {
+void read_inv_to_tree(NODE* root) {
+	FILE* file;
+	char line[MAX_WORD_LEN + 2];
+	int len = 0;
+	if (fopen_s(&file, INV, "r+")) {
+		printf("Словарь не найден...");
+		exit(EXIT_FAILURE);
+	}
+	while (fgets(line, sizeof(line), file) != NULL) {
+		len = strlen(line) - 1;
+		(line[len] == '\n') ? line[len] = '\0' : line[len];
+		insert_word_tree(line, root);
+	}
+	fclose(file);
+}
+
+int find_word_tree(unsigned char* word, NODE* root) {
 	NODE* node = root;
 	for (int i = 0; i < strlen(word);  i++) {
 		for (int j = 0; j < ALPHABET_POW; j++) {
@@ -142,28 +177,36 @@ int find_word_tree(char* word, NODE* root) {
 /*int search node -- существует точно такая же функция int get_letter_index() для поиска буквы в узле*/
 
 /*Основная функция поиска в словарном дереве*/
-void search_dict_tree(int x, int y, NODE* node, char* curr_word) {
+void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
 	int res = 0, checked = 0;
-	if (difficult == 2 && strlen(curr_word) >= 5) {
+	if (difficult == 2 && strlen(longest_word) >= 5) {
+		found = 1;
 		return;
 	}
 	if (node->word != NULL && strlen(curr_word) > max_len) {
 		int flag = 0;
-		for (int i = 0; words_bank[i] != NULL; i++) {
+		for (int i = 0; i < words_bank_len; i++) {
 			if (!strcmp(words_bank[i], curr_word)) {
 				flag = 1;
 				break;
 			}
 
 		}
-		if (!flag) {
+		if (!flag && strlen(curr_word) >= 3) {
 			max_len = strlen(curr_word);
-			strcpy(longest_word, curr_word);
+			for (int k = 0; curr_word[k] != '\0'; k++) {
+				longest_word[k] = curr_word[k];
+			}
+			//strcpy(longest_word, curr_word);
+			if (difficult == 1) {
+				found = 1;
+				return;
+			}
 		}
 	}
-	if (difficult == 1) {
-		return;
-	}
+	//if (difficult == 1) {
+	//	return;
+	//}
 	if (field_for_search[x][y] == 0) {
 		field_for_search[x][y] = 1;
 		checked = 1;
@@ -171,37 +214,41 @@ void search_dict_tree(int x, int y, NODE* node, char* curr_word) {
 	// Проверяем все смежные клетки
 	//Верхняя клетка
 	res = get_letter_index(field_letters[x - 1][y], node);
-	if (field_letters[x - 1][y] != '\0' && field_for_search[x - 1][y] != 1 && node->letters[res] != NULL) {
+	if (field_letters[x - 1][y] != '\0' && field_for_search[x - 1][y] != 1 && res != -1 && node->letters[res] != NULL) {
 		curr_word[strlen(curr_word)] = field_letters[x - 1][y];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x - 1, y, node->next[res], curr_word);
+		if (found) return;
 		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
 	}
 
 	// Левая клетка
-	res = get_letter_index(field_letters[x - 1][y], node);
-	if (field_letters[x][y-1] != '\0' && field_for_search[x][y-1] != 1 && node->letters[res] != NULL) {
+	res = get_letter_index(field_letters[x][y-1], node);
+	if (field_letters[x][y-1] != '\0' && field_for_search[x][y-1] != 1 && res != -1 && node->letters[res] != NULL) {
 		curr_word[strlen(curr_word)] = field_letters[x][y-1];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x, y-1, node->next[res], curr_word);
+		if (found) return;
 		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
 	}
 
 	// Нижняя клетка
 	res = get_letter_index(field_letters[x + 1][y], node);
-	if (field_letters[x + 1][y] != '\0' && field_for_search[x + 1][y] != 1 && node->letters[res] != NULL) {
+	if (field_letters[x + 1][y] != '\0' && field_for_search[x + 1][y] != 1 && res != -1 && node->letters[res] != NULL) {
 		curr_word[strlen(curr_word)] = field_letters[x + 1][y];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x + 1, y, node->next[res], curr_word);
+		if (found) return;
 		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
 	}
 
 	// Правая клетка
 	res = get_letter_index(field_letters[x][y+1], node);
-	if (field_letters[x][y+1] != '\0' && field_for_search[x][y+1] != 1 && node->letters[res] != NULL) {
+	if (field_letters[x][y+1] != '\0' && field_for_search[x][y+1] != 1 && res != -1 && node->letters[res] != NULL) {
 		curr_word[strlen(curr_word)] = field_letters[x][y+1];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x, y + 1, node->next[res], curr_word);
+		if (found) return;
 		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
 	}
 	(checked == 1) ? field_for_search[x][y] = 0 : field_for_search[x][y];
@@ -210,9 +257,9 @@ void search_dict_tree(int x, int y, NODE* node, char* curr_word) {
 
 
 /*Функция разворота слова(создание инвар.)*/
-void reverse_word(char* word) {
+void reverse_word(unsigned char* word) {
 	for (int i = 0, j = strlen(word) - 1; i < strlen(word) / 2; i++, j--) {
-		char temp = word[i];
+		unsigned char temp = word[i];
 		word[i] = word[j];
 		word[j] = temp;
 	}
@@ -221,7 +268,7 @@ void reverse_word(char* word) {
 
 // Фукнция нужна для нахождения аналогичного узла из инвертированного дерева в словарном дереве 
 // Который в дальнейшем используется в поиске по словарному дереву
-NODE* inv_to_dict_node(char* word) {
+NODE* inv_to_dict_node(unsigned char* word) {
 	reverse_word(word);
 	NODE* node = root_dict;
 	for (int i = 0; i < strlen(word); i++) {
@@ -236,55 +283,130 @@ NODE* inv_to_dict_node(char* word) {
 }
 
 /*Основная функция поиска*/
-/*
-void search_inv_tree(int x, int y, NODE* node, char* curr_word, int sub_i){
-	if (field_letters[x][y] != '\0' || field_for_search[x][y] == 1) {
+void search_inv_tree(int x, int y, unsigned char* curr_word, int end_ind){
+	if (field_letters[x][y] == '\0' || field_for_search[x][y] == 1) {
 		return;
 	}
-	curr_word[sub_i] = field_letters[x][y];
+	curr_word[end_ind] = field_letters[x][y];
 	field_for_search[x][y] = 1;
-	curr_word[sub_i + 1] = '\0';
+	curr_word[end_ind + 1] = '\0';
 
 	// Проверяем все смежные клетки
-	//Верхняя клетка
-	res = get_letter_index(field_letters[x - 1][y], node);
-	if (field_letters[x - 1][y] != '\0' && field_for_search[x - 1][y] != 1 && node->letters[res] != NULL) {
-		curr_word[strlen(curr_word)] = field_letters[x - 1][y];
-		curr_word[strlen(curr_word)] = '\0';
-		search_dict_tree(x - 1, y, node->next[res], curr_word);
-		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
+	unsigned char new_word[MAX_WORD_LEN] = {'\0'};
+	strcpy(new_word, curr_word);
+	if (find_word_tree(curr_word, root_inv)) {
+		NODE* node = inv_to_dict_node(curr_word);
+		search_dict_tree(x_start, y_start, node, new_word);
+		if (found) return;
 	}
+	//Можно добавить оптимизацию
+	/*
+	else {
+
+	}
+	*/
+	//Верхняя клетка
+	if (field_letters[x - 1][y] != '\0' && field_for_search[x - 1][y] != 1) {
+		search_inv_tree(x - 1, y, curr_word, end_ind + 1);
+	}
+	curr_word[end_ind + 1] = '\0';
 
 	// Левая клетка
-	res = get_letter_index(field_letters[x - 1][y], node);
-	if (field_letters[x][y - 1] != '\0' && field_for_search[x][y - 1] != 1 && node->letters[res] != NULL) {
-		curr_word[strlen(curr_word)] = field_letters[x][y - 1];
-		curr_word[strlen(curr_word)] = '\0';
-		search_dict_tree(x, y - 1, node->next[res], curr_word);
-		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
+	if (field_letters[x][y+1] != '\0' && field_for_search[x][y + 1] != 1) {
+		search_inv_tree(x, y+1, curr_word, end_ind + 1);
 	}
+	curr_word[end_ind + 1] = '\0';
 
 	// Нижняя клетка
-	res = get_letter_index(field_letters[x + 1][y], node);
-	if (field_letters[x + 1][y] != '\0' && field_for_search[x + 1][y] != 1 && node->letters[res] != NULL) {
-		curr_word[strlen(curr_word)] = field_letters[x + 1][y];
-		curr_word[strlen(curr_word)] = '\0';
-		search_dict_tree(x + 1, y, node->next[res], curr_word);
-		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
+	if (field_letters[x+1][y] != '\0' && field_for_search[x + 1][y] != 1) {
+		search_inv_tree(x + 1, y, curr_word, end_ind + 1);
 	}
+	curr_word[end_ind + 1] = '\0';
 
 	// Правая клетка
-	res = get_letter_index(field_letters[x][y + 1], node);
-	if (field_letters[x][y + 1] != '\0' && field_for_search[x][y + 1] != 1 && node->letters[res] != NULL) {
-		curr_word[strlen(curr_word)] = field_letters[x][y + 1];
-		curr_word[strlen(curr_word)] = '\0';
-		search_dict_tree(x, y + 1, node->next[res], curr_word);
-		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
+	if (field_letters[x][y-1] != '\0' && field_for_search[x][y-1] != 1) {
+		search_inv_tree(x, y-1, curr_word, end_ind + 1);
 	}
-	(checked == 1) ? field_for_search[x][y] = 0 : field_for_search[x][y];
+	curr_word[end_ind + 1] = '\0';
+
+	field_for_search[x][y] = 0;
 	return;
 }
-*/
+
+void check_all_letters(int x, int y) {
+	int curr_letter = LETTER_a_RUS;
+	unsigned char curr_word[MAX_WORD_LEN] = { 0 };
+	int end_ind = 0;
+	for (int i = 0; i < ALPHABET_POW; i++) {
+		int len = max_len;
+		field_letters[x][y] = curr_letter;
+		search_inv_tree(x, y, curr_word, end_ind);
+		if (len < max_len) {
+			x_chosen = x;
+			y_chosen = y;
+			letter_chosen = curr_letter;
+		}
+		field_letters[x][y] = '\0';
+		memset(curr_word, 0, MAX_WORD_LEN);
+		curr_letter++;
+		if (found) return;
+		
+	}
+	return;
+}
+
+
+int bot_move() {
+	// Стартовый индекс 1 или 0?
+	int cell_count = 0;
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 5; j++) {
+			if (field_letters[i][j] == '\0' && ((i + 1 < 5 && field_letters[i + 1][j] != 0) ||
+				(i - 1 >= 0 && field_letters[i - 1][j] != 0) || (j + 1 < 5 && field_letters[i][j + 1] != 0) || (j - 1 >= 0 && field_letters[i][j - 1] != 0))){
+				cell_count++;
+				x_start = i;
+				y_start = j;
+				check_all_letters(i, j);
+				if (found) break;
+
+			}
+		}
+		if (found) break;
+		found = 0;
+	}
+
+	if (max_len == 0 && cell_count != 0) {
+		printf("Слит ботяра");
+		return 1;
+	}
+	else {
+		field_letters[x_start][y_start] = letter_chosen;
+		for (int i = 0; i < max_len; i++) {
+			words_bank[words_bank_len][i] = longest_word[i];
+		}
+		words_bank_len += 1;
+		h_score += max_len;
+		max_len = 0;
+	}
+	return 0;
+}
+
+void init_dict_tree() {
+	root_dict = (NODE*)malloc(sizeof(NODE));
+	if (root_dict == NULL) {
+		exit(EXIT_FAILURE);
+	}
+	memset(root_dict, 0, sizeof(NODE));
+}
+
+void init_inv_tree() {
+	root_inv = (NODE*)malloc(sizeof(NODE));
+	if (root_inv == NULL) {
+		exit(EXIT_FAILURE);
+	}
+	memset(root_inv, 0, sizeof(NODE));
+}
+
 int main()
 {
 	system("chcp 1251");
@@ -292,19 +414,24 @@ int main()
 	ShowWindow(hWnd, SW_MAXIMIZE);
 	system("cls");
 	FILE* file;
-	file = fopen(DICT, "r");
+	init_dict_tree();
+	init_inv_tree();
+	read_dict_to_tree(root_dict);
+	read_inv_to_tree(root_inv);
+	//read_dict_to_tree()
+	/*file = fopen(DICT, "r");
 	if (file == NULL) {
 		printf("I just don't have the words to describe the pain i feel!");
 		return 1;
 	}
-	fclose(file);
+	fclose(file);*/
 	file = fopen(START_WORDS, "r");
 	if (file == NULL) {
 		printf("I just don't have the words with five letters to describe the pain i feel!");
 		return 1;
 	}
 	fclose(file);
-	// Инициализируется консоль, скрывается курсор
+	// Инициализируется консоль, скрывается курсор, добавляется русский язык в консоль
 	con_init(100, 50);
 	// system("mode con cols=100 lines=25");
 	show_cursor(0);
@@ -456,16 +583,16 @@ void set_letter() {
 	int r = rand() % five_count;
 	system("cls");
 	for (i = 1; i != r; i++) fgets(five_word, 7, five_file);
-	field_letters[2][0] = five_word[0] - ALPHABET_POW;
-	field_letters[2][1] = five_word[1] - ALPHABET_POW;
-	field_letters[2][2] = five_word[2] - ALPHABET_POW;
-	field_letters[2][3] = five_word[3] - ALPHABET_POW;
-	field_letters[2][4] = five_word[4] - ALPHABET_POW;
-	words_bank[0][0] = five_word[0] - ALPHABET_POW;
-	words_bank[0][1] = five_word[1] - ALPHABET_POW;
-	words_bank[0][2] = five_word[2] - ALPHABET_POW;
-	words_bank[0][3] = five_word[3] - ALPHABET_POW;
-	words_bank[0][4] = five_word[4] - ALPHABET_POW;
+	field_letters[2][0] = five_word[0];
+	field_letters[2][1] = five_word[1];
+	field_letters[2][2] = five_word[2];
+	field_letters[2][3] = five_word[3];
+	field_letters[2][4] = five_word[4];
+	words_bank[0][0] = five_word[0];
+	words_bank[0][1] = five_word[1];
+	words_bank[0][2] = five_word[2];
+	words_bank[0][3] = five_word[3];
+	words_bank[0][4] = five_word[4];
 	words_bank[0][5] = '\0';
 	words_bank_len = 1;
 	fclose(five_file);
@@ -476,6 +603,11 @@ void set_letter() {
 	int field_letters_line_count = 5;
 	while (1)
 	{
+		if (turn % 2 == 0) {
+			bot_move();
+			turn++;
+			continue;
+		}
 		int left = x_coord_field;
 		int top = y_coord_field;
 		int i, j;
@@ -509,7 +641,7 @@ void set_letter() {
 				printf("|       ");
 
 				gotoxy(left+4, top);
-				printf("%c", field_letters[i][j]);
+				field_letters[i][j] != 0 ? printf("%c", field_letters[i][j] - ALPHABET_POW) : printf("%c", field_letters[i][j]);
 				//printf("А", field_letters[i][j]);
 
 				gotoxy(left+8, top);
@@ -634,10 +766,10 @@ void set_letter() {
 				while (!key_is_pressed()) {
 					code = key_pressed_code();
 					if (code >= (unsigned char)'А' && code <= (unsigned char)'Я') {
-						field_letters[column_active_idx][line_active_idx] = code;
+						field_letters[column_active_idx][line_active_idx] = code + ALPHABET_POW;
 					}
 					else if (code >= (unsigned char)'а' && code <= (unsigned char)'я') {
-						field_letters[column_active_idx][line_active_idx] = code - ALPHABET_POW;
+						field_letters[column_active_idx][line_active_idx] = code;
 					}
 					else break;
 					is_word = set_word(column_active_idx, line_active_idx);
@@ -730,7 +862,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 				printf("|       ");
 
 				gotoxy(left + 4, top);
-				printf("%c", field_letters[i][j]);
+				field_letters[i][j] == '\0' ? printf("%c", field_letters[i][j]) : printf("%c", field_letters[i][j]) - ALPHABET_POW;
 				//printf("А", field_letters[i][j]);
 
 				gotoxy(left + 8, top);
@@ -750,7 +882,6 @@ int set_word(int column_active_idx, int line_active_idx) {
 		show_score(left, top, btn_bg);
 		// Данные подготовлены, вывести на экран
 		con_draw_release();
-
 		while (!key_is_pressed()) // Если пользователь нажимает кнопку
 		{
 			int code = key_pressed_code();
@@ -963,7 +1094,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 								printf("|       ");
 
 								gotoxy(left + 4, top);
-								printf("%c", field_letters[i][j]);
+								printf("%c", field_letters[i][j] - ALPHABET_POW);
 								//printf("А", field_letters[i][j]);
 
 								gotoxy(left + 8, top);
@@ -977,7 +1108,6 @@ int set_word(int column_active_idx, int line_active_idx) {
 								printf("---------");
 							}
 						}
-
 						show_words_bank(left, top, btn_bg);
 
 						show_score(left, top, btn_bg);
@@ -994,7 +1124,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 					else 
 					{
 						//Проверка на наличие слова в словаре
-						FILE* file = fopen(DICT, "r");
+						FILE* file = fopen(DICT, "r+");
 						char str[31];
 						int flag_compare = 0;
 						while (!feof(file))
@@ -1002,7 +1132,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 							fgets(str, 30, file);
 							int compare_idx = 0;
 							while (compare_idx < word_length) {
-								if (field_letters[field_word[compare_idx][0]][field_word[compare_idx][1]] == str[compare_idx] - ALPHABET_POW) compare_idx++;
+								if (field_letters[field_word[compare_idx][0]][field_word[compare_idx][1]] == str[compare_idx]) compare_idx++;
 								else break;
 							}
 							if (compare_idx == word_length && str[compare_idx] == '\n') {
