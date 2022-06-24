@@ -182,12 +182,15 @@ int find_word_tree(unsigned char* word, NODE* root) {
 
 /*Основная функция поиска в словарном дереве*/
 void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
+	//if (x - 1 < 0 || y - 1 < 0 || x + 1 >= 5 || y + 1 >= 5) {
+	//	return;
+	//}
 	int res = 0, checked = 0;
-	if (difficult == 2 && strlen(curr_word) >= 5) {
-		found = 1;
-		return;
-	}
-	if (node->word != NULL && strlen(curr_word) > max_len) {
+	//if (difficult == 2 &&) {
+	//	found = 1;
+	//	return;
+	//}
+	if (node->word != NULL && strlen(curr_word) > max_len && (find_word_tree(curr_word, root_dict) || find_word_tree(curr_word, root_inv))) {
 		int flag = 0;
 		for (int i = 0; i < words_bank_len; i++) {
 			if (!strncmp(words_bank[i], curr_word, MAX_WORD_LEN)) {
@@ -196,13 +199,17 @@ void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
 			}
 
 		}
-		if (!flag && strlen(curr_word) >= 3) {
+		if (!flag) {
 			max_len = strlen(curr_word);
 			for (int k = 0; curr_word[k] != '\0'; k++) {
 				longest_word[k] = curr_word[k];
 			}
 			//strcpy(longest_word, curr_word);
 			if (difficult == 1) {
+				found = 1;
+				return;
+			}
+			if (difficult == 2 && max_len >= 4) {
 				found = 1;
 				return;
 			}
@@ -288,7 +295,7 @@ NODE* inv_to_dict_node(unsigned char* word) {
 
 /*Основная функция поиска*/
 void search_inv_tree(int x, int y, unsigned char* curr_word, int end_ind){
-	if (field_letters[x][y] == '\0') {
+	if (field_letters[x][y] == '\0' && 0 <= x < 5 && 0 <= y < 5) {
 		return;
 	}
 	curr_word[end_ind] = field_letters[x][y];
@@ -363,20 +370,20 @@ void check_all_letters(int x, int y) {
 int bot_move() {
 	// Стартовый индекс 1 или 0?
 	int cell_count = 0;
-	for (int i = 0; i < 5; i++) {
-		for (int j = 0; j < 5; j++) {
+	for (int i = 1; i < 5 + 1; i++) {
+		for (int j = 1; j < 5 + 1; j++) {
 			if (field_letters[i][j] == '\0' && ((i + 1 < 5 && field_letters[i + 1][j] != '\0') ||
 				(i - 1 >= 0 && field_letters[i - 1][j] != '\0') || (j + 1 < 5 && field_letters[i][j + 1] != '\0') || (j - 1 >= 0 && field_letters[i][j - 1] != '\0'))) {
 				cell_count++;
 				x_start = i;
 				y_start = j;
 				check_all_letters(i, j);
-				if (found) break;
+				//if (found) break;
 
 			}
 		}
-		if (found) break;
-		found = 0;
+		//if (found) break;
+		//found = 0;
 	}
 
 	if (max_len == 0 && cell_count != 0) {
@@ -384,7 +391,7 @@ int bot_move() {
 		return 1;
 	}
 	else {
-		field_letters[x_start][y_start] = letter_chosen;
+		field_letters[x_start][y_start] = letter_chosen; // dsadassdasd
 		for (int i = 0; i < max_len; i++) {
 			words_bank[words_bank_len][i] = longest_word[i];
 		}
@@ -747,6 +754,7 @@ void set_letter() {
 			bot_move();
 			memset(longest_word, 0, sizeof(longest_word));
 			max_len = 0;
+			x_chosen = 0; y_chosen = 0; x_start = 0; y_start = 0;
 			found = 0;
 			turn++;
 		}
@@ -1301,7 +1309,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 											h_score += word_length;
 										else
 											c_score += word_length;
-									if (game_mode == MODE_DZEN)
+									else
 										h_score += word_length;
 									turn++;
 									return 0;
