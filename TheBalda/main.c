@@ -28,7 +28,9 @@
 #define  x_coord_field          80
 #define  y_coord_field          5
 #define  x_coord_menu           x_coord_field + 14
-
+#define  MODE_DUEL				1
+#define  MODE_VS_ROBOT			2
+#define  MODE_DZEN				3
 
 
 /*Структура узла словарного и инвертированного префиксных деревьев*/
@@ -48,16 +50,17 @@ void difficulty_selection();
 void first_turn_selection();
 void set_letter();
 int surrender_window();
-void show_score(int left, int top, int btn_bg);
-void show_words_bank(int left, int top, int btn_bg);
+void show_score();
+void show_words_bank();
 int set_word(int column_active_idx, int line_active_idx);
 int search_letter(char letter, NODE* node);
-void show_end_game(int left, int top, int btn_bg);
+void show_end_game();
 
+char game_mode = MODE_VS_ROBOT;
 char found = 0;
 NODE* root_dict;
 NODE* root_inv;
-unsigned char* longest_word[MAX_WORD_LEN] = {'\0'};
+unsigned char* longest_word[MAX_WORD_LEN] = { '\0' };
 int difficult = 1; //сложность изначально "лёгкий"
 int turn = 0, turn_test = 1;
 char words_bank[MAX_WORDS_COUNT][MAX_WORD_LEN];
@@ -67,7 +70,7 @@ char field_for_search[5][5] = { {1} }; // Нужно для отметок уж�
 int max_len = 0, x_start = 0, y_start = 0, x_chosen = 0, y_chosen = 0;
 unsigned char letter_chosen = 0;
 unsigned char field_letters[5][5] = { {'\0'} };
-
+int left, top, btn_bg;
 
 /*Поиск индекса буквы внутри узла*/
 int find_node(unsigned char letter, NODE* node) {
@@ -96,7 +99,6 @@ int get_letter_index(unsigned char letter, NODE* node) {
 
 /*Вставка слова в дерево*/
 void insert_word_tree(unsigned char* word, NODE* root) {
-
 	NODE* node = root;
 	for (int i = 0; i < strlen(word); i++) {
 		int result = find_node(word[i], node);
@@ -116,8 +118,10 @@ void insert_word_tree(unsigned char* word, NODE* root) {
 		node = node->next[result];
 	}
 	/*Вставка всего слова в поле word?*/
+	//if (root != root_inv) {
 	node->word = (char*)malloc(strlen(word));
 	strcpy(node->word, word);
+	//}
 }
 
 /*Считывание словаря в словарное дерево*/
@@ -155,7 +159,7 @@ void read_inv_to_tree(NODE* root) {
 
 int find_word_tree(unsigned char* word, NODE* root) {
 	NODE* node = root;
-	for (int i = 0; i < strlen(word);  i++) {
+	for (int i = 0; i < strlen(word); i++) {
 		for (int j = 0; j < ALPHABET_POW; j++) {
 			if (node->letters[j] == NULL) {
 				return 0;
@@ -178,79 +182,91 @@ int find_word_tree(unsigned char* word, NODE* root) {
 
 /*Основная функция поиска в словарном дереве*/
 void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
-	int res = 0, checked = 0;
-	if (difficult == 2 && strlen(longest_word) >= 5) {
-		found = 1;
+	/*if (x >= 5 || y >= 5) return;
+	if (x < 0 || y < 0) return;*/
+	//if (x - 1 < 0 || y - 1 < 0 || x + 1 >= 5 || y + 1 >= 5) {
+	//	return;
+	//}
+	if (difficult == 2 && strlen(curr_word) >= 3 && strlen(curr_word) < 6) {
 		return;
 	}
+	int res = 0, checked = 0;
+	//if (difficu/*lt == 2 && max_len >= 4) {
+		//found = 1;
+		//return;
+	//}*/
 	if (node->word != NULL && strlen(curr_word) > max_len) {
 		int flag = 0;
 		for (int i = 0; i < words_bank_len; i++) {
-			if (!strcmp(words_bank[i], curr_word)) {
+			if (!strncmp(words_bank[i], curr_word, MAX_WORD_LEN)) {
 				flag = 1;
 				break;
 			}
 
 		}
-		if (!flag && strlen(curr_word) >= 3) {
+		if (!flag) {
 			max_len = strlen(curr_word);
 			for (int k = 0; curr_word[k] != '\0'; k++) {
 				longest_word[k] = curr_word[k];
 			}
 			//strcpy(longest_word, curr_word);
-			if (difficult == 1) {
-				found = 1;
-				return;
-			}
+			//if (difficult == 1) {
+			//	found = 1;
+			//	return;
+			//}
+			//if (difficult == 2 && max_len >= 4) {
+			//	found = 1;
+			//	return;
+			//}
 		}
 	}
-	//if (difficult == 1) {
-	//	return;
-	//}
+	if (difficult == 1 && strlen(curr_word) <= 4) {
+		return;
+	}
 	if (field_for_search[x][y] == 0) {
 		field_for_search[x][y] = 1;
-		checked = 1;
+		checked++;
 	}
 	// Проверяем все смежные клетки
 	//Верхняя клетка
 	res = get_letter_index(field_letters[x - 1][y], node);
-	if (field_letters[x - 1][y] != '\0' && field_for_search[x - 1][y] != 1 && res != -1 && node->letters[res] != NULL) {
+	if (field_letters[x - 1][y] != '\0' && field_for_search[x - 1][y] != 1 && res != -1) {
 		curr_word[strlen(curr_word)] = field_letters[x - 1][y];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x - 1, y, node->next[res], curr_word);
-		if (found) return;
+		//if (found) return;
 		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
 	}
-
-	// Левая клетка
-	res = get_letter_index(field_letters[x][y-1], node);
-	if (field_letters[x][y-1] != '\0' && field_for_search[x][y-1] != 1 && res != -1 && node->letters[res] != NULL) {
-		curr_word[strlen(curr_word)] = field_letters[x][y-1];
+	// Правая клетка
+	res = get_letter_index(field_letters[x][y + 1], node);
+	if (field_letters[x][y + 1] != '\0' && field_for_search[x][y + 1] != 1 && res != -1) {
+		curr_word[strlen(curr_word)] = field_letters[x][y + 1];
 		curr_word[strlen(curr_word)] = '\0';
-		search_dict_tree(x, y-1, node->next[res], curr_word);
-		if (found) return;
+		search_dict_tree(x, y + 1, node->next[res], curr_word);
+		//if (found) return;
 		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
 	}
-
 	// Нижняя клетка
 	res = get_letter_index(field_letters[x + 1][y], node);
-	if (field_letters[x + 1][y] != '\0' && field_for_search[x + 1][y] != 1 && res != -1 && node->letters[res] != NULL) {
+	if (field_letters[x + 1][y] != '\0' && field_for_search[x + 1][y] != 1 && res != -1) {
 		curr_word[strlen(curr_word)] = field_letters[x + 1][y];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x + 1, y, node->next[res], curr_word);
-		if (found) return;
+		//if (found) return;
 		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
 	}
 
-	// Правая клетка
-	res = get_letter_index(field_letters[x][y+1], node);
-	if (field_letters[x][y+1] != '\0' && field_for_search[x][y+1] != 1 && res != -1 && node->letters[res] != NULL) {
-		curr_word[strlen(curr_word)] = field_letters[x][y+1];
+
+	// Левая клетка
+	res = get_letter_index(field_letters[x][y - 1], node);
+	if (field_letters[x][y - 1] != '\0' && field_for_search[x][y - 1] != 1 && res != -1) {
+		curr_word[strlen(curr_word)] = field_letters[x][y - 1];
 		curr_word[strlen(curr_word)] = '\0';
-		search_dict_tree(x, y + 1, node->next[res], curr_word);
-		if (found) return;
+		search_dict_tree(x, y - 1, node->next[res], curr_word);
+		//if (found) return;
 		curr_word[strlen(curr_word) - 1] = '\0';// Подумать над необходимостью
 	}
+
 	(checked == 1) ? field_for_search[x][y] = 0 : field_for_search[x][y];
 	return;
 }
@@ -283,8 +299,8 @@ NODE* inv_to_dict_node(unsigned char* word) {
 }
 
 /*Основная функция поиска*/
-void search_inv_tree(int x, int y, unsigned char* curr_word, int end_ind){
-	if (field_letters[x][y] == '\0' || field_for_search[x][y] == 1) {
+void search_inv_tree(int x, int y, unsigned char* curr_word, int end_ind) {
+	if (field_letters[x][y] == '\0' || x < 0 || y < 0 || x >= 5 || y >= 5) {
 		return;
 	}
 	curr_word[end_ind] = field_letters[x][y];
@@ -292,12 +308,12 @@ void search_inv_tree(int x, int y, unsigned char* curr_word, int end_ind){
 	curr_word[end_ind + 1] = '\0';
 
 	// Проверяем все смежные клетки
-	unsigned char new_word[MAX_WORD_LEN] = {'\0'};
+	unsigned char new_word[MAX_WORD_LEN] = { '\0' };
 	strcpy(new_word, curr_word);
 	if (find_word_tree(curr_word, root_inv)) {
-		NODE* node = inv_to_dict_node(curr_word);
+		NODE* node = inv_to_dict_node(new_word);
 		search_dict_tree(x_start, y_start, node, new_word);
-		if (found) return;
+		//if (found) return;
 	}
 	//Можно добавить оптимизацию
 	/*
@@ -312,25 +328,24 @@ void search_inv_tree(int x, int y, unsigned char* curr_word, int end_ind){
 	curr_word[end_ind + 1] = '\0';
 
 	// Левая клетка
-	if (field_letters[x][y+1] != '\0' && field_for_search[x][y + 1] != 1) {
-		search_inv_tree(x, y+1, curr_word, end_ind + 1);
+	if (field_letters[x][y + 1] != '\0' && field_for_search[x][y + 1] != 1) {
+		search_inv_tree(x, y + 1, curr_word, end_ind + 1);
 	}
 	curr_word[end_ind + 1] = '\0';
 
 	// Нижняя клетка
-	if (field_letters[x+1][y] != '\0' && field_for_search[x + 1][y] != 1) {
+	if (field_letters[x + 1][y] != '\0' && field_for_search[x + 1][y] != 1) {
 		search_inv_tree(x + 1, y, curr_word, end_ind + 1);
 	}
 	curr_word[end_ind + 1] = '\0';
 
 	// Правая клетка
-	if (field_letters[x][y-1] != '\0' && field_for_search[x][y-1] != 1) {
-		search_inv_tree(x, y-1, curr_word, end_ind + 1);
+	if (field_letters[x][y - 1] != '\0' && field_for_search[x][y - 1] != 1) {
+		search_inv_tree(x, y - 1, curr_word, end_ind + 1);
 	}
 	curr_word[end_ind + 1] = '\0';
 
 	field_for_search[x][y] = 0;
-	return;
 }
 
 void check_all_letters(int x, int y) {
@@ -349,8 +364,8 @@ void check_all_letters(int x, int y) {
 		field_letters[x][y] = '\0';
 		memset(curr_word, 0, MAX_WORD_LEN);
 		curr_letter++;
-		if (found) return;
-		
+		//if (found) return;
+
 	}
 	return;
 }
@@ -361,18 +376,18 @@ int bot_move() {
 	int cell_count = 0;
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 5; j++) {
-			if (field_letters[i][j] == '\0' && ((i + 1 < 5 && field_letters[i + 1][j] != 0) ||
-				(i - 1 >= 0 && field_letters[i - 1][j] != 0) || (j + 1 < 5 && field_letters[i][j + 1] != 0) || (j - 1 >= 0 && field_letters[i][j - 1] != 0))){
+			if (field_letters[i][j] == '\0' && ((i + 1 < 5 && field_letters[i + 1][j] != '\0') ||
+				(i - 1 >= 0 && field_letters[i - 1][j] != '\0') || (j + 1 < 5 && field_letters[i][j + 1] != '\0') || (j - 1 >= 0 && field_letters[i][j - 1] != '\0'))) {
 				cell_count++;
 				x_start = i;
 				y_start = j;
 				check_all_letters(i, j);
-				if (found) break;
+				//if (found) break;
 
 			}
 		}
-		if (found) break;
-		found = 0;
+		//if (found) break;
+		//found = 0;
 	}
 
 	if (max_len == 0 && cell_count != 0) {
@@ -380,12 +395,13 @@ int bot_move() {
 		return 1;
 	}
 	else {
-		field_letters[x_start][y_start] = letter_chosen;
+		field_letters[x_chosen][y_chosen] = letter_chosen;
 		for (int i = 0; i < max_len; i++) {
 			words_bank[words_bank_len][i] = longest_word[i];
 		}
 		words_bank_len += 1;
-		h_score += max_len;
+		c_score += max_len;
+
 		max_len = 0;
 	}
 	return 0;
@@ -446,13 +462,13 @@ int main()
 // Поддержка главного меню
 void main_menu()
 {
-	const char* menu_items[] = {"Балда" ,"Игра", "Настройки", "Таблица рекордов", "О программе", "Выход"};
+	const char* menu_items[] = { "Балда" ,"Игра", "Настройки", "Таблица рекордов", "О программе", "Выход" };
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	/*short clr_bg = CON_CLR_BLACK;
 	short clr_bg_active = CON_CLR_RED;
 	short clr_font = CON_CLR_WHITE_LIGHT;*/
-	int left = x_coord_menu;
+	left = x_coord_menu;
 	int top = y_coord_field;
 	int b;
 	while (1)
@@ -566,6 +582,141 @@ void main_menu()
 	} // while(1)
 }
 
+void mode_selection() {
+	char* menu_items[] = { "Режим" ,"Против игрока", "Против компьютера", "Дзен" ,"Назад или ESC" };
+	int menu_active_idx = 1;
+	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
+	//short clr_bg = CON_CLR_BLACK;
+	//short clr_bg_active = CON_CLR_RED;
+	//short clr_font = CON_CLR_WHITE_LIGHT;
+	//short clr_bg_chosen = CON_CLR_RED_LIGHT;
+	while (1)
+	{
+		left = x_coord_menu;
+		top = y_coord_field;
+		int b;
+
+		// Заблокировать отрисовку
+		con_draw_lock();
+
+		// Очистка экрана
+		con_set_color(clr_font, clr_bg);
+		clrscr();
+		// Цикл отрисовывает кнопку
+		for (b = 0; b < menu_items_count; b++)
+		{
+			short btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
+
+			//if (b == difficult)
+			//	btn_bg = clr_bg_chosen;//Кнопка не активна и это текущая сложность
+			if (b == menu_active_idx)
+				btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
+			gotoxy(left, top);
+			con_set_color(clr_font, btn_bg);
+
+			if (b == 0)
+				printf("~~~~~~~~~~~~~~~~~~~~");
+			else
+				printf("====================");
+			top++;
+			if (b == game_mode) {
+				gotoxy(left - 4, top);
+				printf("--->|                   ");
+			}
+			else {
+				gotoxy(left, top);
+				printf("|                   ");
+			}
+
+			gotoxy(left + 10 - strlen(menu_items[b]) / 2, top);
+			printf("%s", menu_items[b]);
+			con_set_color(clr_font, btn_bg);
+			if (b == game_mode) {
+				gotoxy(left + 19, top);
+				printf("|<---");
+			}
+			else {
+				gotoxy(left + 19, top);
+				printf("|");
+			}
+			top++;
+			gotoxy(left, top);
+			if (b == 0)
+				printf("~~~~~~~~~~~~~~~~~~~~");
+			else
+				printf("====================");
+			top += 2;
+		}
+
+		// Данные подготовлены, вывести на экран
+		con_draw_release();
+
+
+		while (!key_is_pressed()) // Если пользователь нажимает кнопку
+		{
+			int code = key_pressed_code();
+			if (code == 'w' || code == 'W' || code == (unsigned char)'ц' || code == (unsigned char)'Ц') // Если это стрелка вверх
+			{
+				// То переход к верхнему пункту (если это возможно)
+				if (menu_active_idx > 1)
+				{
+					menu_active_idx--;
+					break;
+				}
+				else
+				{
+					menu_active_idx = menu_items_count - 1;
+					break;
+				}
+			}
+			else if (code == 's' || code == 'S' || code == (unsigned char)'ы' || code == (unsigned char)'Ы') // Если стрелка вниз
+			{
+				// То переход к нижнему пункту (если это возможно)
+				if (menu_active_idx + 1 < menu_items_count)
+				{
+					menu_active_idx++;
+					break;
+				}
+				else
+				{
+					menu_active_idx = 1;
+					break;
+				}
+			}
+			else if (code == KEY_ESC || code == 'q' || code == 'Q' ||
+				code == (unsigned char)'й' || code == (unsigned char)'Й') // ESC или 'q' - выход
+			{
+				return;
+			}
+			else if (code == KEY_ENTER) // Нажата кнопка Enter
+			{
+				if (menu_active_idx == 4) // Выбран последний пункт - это выход
+					return;
+
+				if (menu_active_idx == 1)//Лёгкая сложность
+					game_mode = MODE_DUEL;
+
+
+				if (menu_active_idx == 2)//Средняя сложность
+					game_mode = MODE_VS_ROBOT;
+
+				if (menu_active_idx == 3)//Сложная
+					game_mode = MODE_DZEN;
+				break;
+			}
+
+
+			pause(40); // Небольная пауза (чтобы не загружать процессор)
+		} // while (!key_is_pressed())
+
+
+		// "Съедается" оставшийся ввод
+		while (key_is_pressed())
+			key_pressed_code();
+
+	} // while(1)
+}
+
 void set_letter() {
 	int i, j;
 	int is_word;
@@ -595,6 +746,18 @@ void set_letter() {
 	words_bank[0][4] = five_word[4];
 	words_bank[0][5] = '\0';
 	words_bank_len = 1;
+	/*field_letters[2][0] = 'ж';
+	field_letters[2][1] = 'у';
+	field_letters[2][2] = 'ч';
+	field_letters[2][3] = 'о';
+	field_letters[2][4] = 'к';
+	words_bank[0][0] = 'ж';
+	words_bank[0][1] = 'у';
+	words_bank[0][2] = 'ч';
+	words_bank[0][3] = 'о';
+	words_bank[0][4] = 'к';
+	words_bank[0][5] = '\0';
+	words_bank_len = 1;*/
 	fclose(five_file);
 
 	int column_active_idx = 0;
@@ -603,13 +766,17 @@ void set_letter() {
 	int field_letters_line_count = 5;
 	while (1)
 	{
-		if (turn % 2 == 0) {
+		if (check_end_game() == 1) return;
+		if (turn % 2 == 0 && game_mode == MODE_VS_ROBOT) {
 			bot_move();
+			memset(longest_word, 0, sizeof(longest_word));
+			max_len = 0;
+			x_chosen = 0; y_chosen = 0; x_start = 0; y_start = 0;
+			found = 0;
 			turn++;
-			continue;
 		}
-		int left = x_coord_field;
-		int top = y_coord_field;
+		left = x_coord_field;
+		top = y_coord_field;
 		int i, j;
 		short btn_bg;
 		// Заблокировать отрисовку
@@ -632,7 +799,7 @@ void set_letter() {
 				gotoxy(left, top);
 				con_set_color(clr_font, btn_bg);
 
-				printf("---------"); 
+				printf("---------");
 				top++;
 				gotoxy(left, top);
 				printf("|       |");
@@ -640,11 +807,11 @@ void set_letter() {
 				gotoxy(left, top);
 				printf("|       ");
 
-				gotoxy(left+4, top);
-				field_letters[i][j] != 0 ? printf("%c", field_letters[i][j] - ALPHABET_POW) : printf("%c", field_letters[i][j]);
+				gotoxy(left + 4, top);
+				field_letters[i][j] != '\0' ? printf("%c", field_letters[i][j] - ALPHABET_POW) : printf("%c", field_letters[i][j]);
 				//printf("А", field_letters[i][j]);
 
-				gotoxy(left+8, top);
+				gotoxy(left + 8, top);
 				printf("|");
 				top++;
 
@@ -656,15 +823,18 @@ void set_letter() {
 			}
 		}
 
-		show_words_bank(left, top, btn_bg);
+		show_words_bank();
 
-		show_score(left, top, btn_bg);
+		show_score();
 
 		// Данные подготовлены, вывести на экран
 		con_draw_release();
 
 		while (!key_is_pressed()) // Если пользователь нажимает кнопку
 		{
+			if (turn % 2 == 0 && game_mode == MODE_VS_ROBOT) {
+				bot_move();
+			}
 			int code = key_pressed_code();
 			if (code == 'w' || code == 'W' || code == (unsigned char)'ц' || code == (unsigned char)'Ц') // Если это стрелка вверх
 			{
@@ -722,16 +892,16 @@ void set_letter() {
 					break;
 				}
 			}
-			else if(code == KEY_ENTER){
+			else if (code == KEY_ENTER) {
 				if (field_letters[column_active_idx][line_active_idx] != '\0') break;
-				if (   (column_active_idx == 4 && field_letters[0][line_active_idx] == '\0'
+				if ((column_active_idx == 4 && field_letters[0][line_active_idx] == '\0'
 					|| column_active_idx != 4 && field_letters[column_active_idx + 1][line_active_idx] == '\0')
 					&& (column_active_idx == 0 && field_letters[4][line_active_idx] == '\0'
-					|| column_active_idx != 0 && field_letters[column_active_idx - 1][line_active_idx] == '\0')
+						|| column_active_idx != 0 && field_letters[column_active_idx - 1][line_active_idx] == '\0')
 					&& (line_active_idx == 4 && field_letters[column_active_idx][0] == '\0'
-					|| line_active_idx != 4 && field_letters[column_active_idx][line_active_idx + 1] == '\0')
+						|| line_active_idx != 4 && field_letters[column_active_idx][line_active_idx + 1] == '\0')
 					&& (line_active_idx == 0 && field_letters[column_active_idx][4] == '\0'
-					|| line_active_idx != 0 && field_letters[column_active_idx][line_active_idx - 1] == '\0')) break;
+						|| line_active_idx != 0 && field_letters[column_active_idx][line_active_idx - 1] == '\0')) break;
 				left = x_coord_field + line_active_idx * 9;
 				top = y_coord_field + column_active_idx * 5;
 				btn_bg = clr_bg_chosen;
@@ -748,7 +918,7 @@ void set_letter() {
 				printf("|       ");
 
 				gotoxy(left + 4, top);
-				printf("%c", field_letters[column_active_idx][line_active_idx]);
+				field_letters[column_active_idx][line_active_idx] != '\0' ? printf("%c", field_letters[column_active_idx][line_active_idx] - ALPHABET_POW) : printf("%c", field_letters[column_active_idx][line_active_idx]);
 				//printf("А", field_letters[i][j]);
 
 				gotoxy(left + 8, top);
@@ -766,10 +936,10 @@ void set_letter() {
 				while (!key_is_pressed()) {
 					code = key_pressed_code();
 					if (code >= (unsigned char)'А' && code <= (unsigned char)'Я') {
-						field_letters[column_active_idx][line_active_idx] = code + ALPHABET_POW;
+						field_letters[column_active_idx][line_active_idx] = code;
 					}
 					else if (code >= (unsigned char)'а' && code <= (unsigned char)'я') {
-						field_letters[column_active_idx][line_active_idx] = code;
+						field_letters[column_active_idx][line_active_idx] = code; //- ALPHABET_POW;;
 					}
 					else break;
 					is_word = set_word(column_active_idx, line_active_idx);
@@ -781,10 +951,10 @@ void set_letter() {
 			else if (code == KEY_BACK) {
 				int pass_ac = pass_turn_window();
 				if (pass_ac == 1) {
+					turn++;
 					for (j = 0; j < MAX_WORD_LEN; j++) {
 						words_bank[turn][j] = '\0';
 					}
-					turn++;
 					words_bank_len++;
 					break;
 				}
@@ -793,14 +963,14 @@ void set_letter() {
 			{
 				int sur_ac = surrender_window();
 				if (sur_ac == 1) {
-					show_end_game(left, top, btn_bg);
+					show_end_game();
 					for (i = 0; i < words_bank_len; i++) {
 						for (j = 0; j < MAX_WORD_LEN; j++) {
 							words_bank[i][j] = '\0';
 						}
 					}
 					h_score = 0, c_score = 0;
-					turn = 1;
+					turn = 0;
 					return;
 				}
 				break;
@@ -816,6 +986,25 @@ void set_letter() {
 
 	} // while(1)
 }
+int check_end_game() {
+	int count = 0;
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 5; j++) {
+			if (field_letters[i][j] != '\0') count++;
+		}
+	}
+	if (count == 25) {
+		show_end_game();
+		for (int i = 0; i < words_bank_len; i++) {
+			for (int j = 0; j < MAX_WORD_LEN; j++) {
+				words_bank[i][j] = '\0';
+			}
+		}
+		h_score = 0, c_score = 0;
+		turn = 0;
+		return 1;
+	}
+}
 
 int set_word(int column_active_idx, int line_active_idx) {
 	int i, j;
@@ -825,8 +1014,8 @@ int set_word(int column_active_idx, int line_active_idx) {
 	int line_letter_idx = line_active_idx;
 	while (1)
 	{
-		int left = x_coord_field;
-		int top = y_coord_field;
+		left = x_coord_field;
+		top = y_coord_field;
 		int i, j, k, n;
 		short btn_bg;
 		int flag = 0;
@@ -862,7 +1051,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 				printf("|       ");
 
 				gotoxy(left + 4, top);
-				field_letters[i][j] == '\0' ? printf("%c", field_letters[i][j]) : printf("%c", field_letters[i][j]) - ALPHABET_POW;
+				field_letters[i][j] == '\0' ? printf("%c", field_letters[i][j]) : printf("%c", field_letters[i][j] - ALPHABET_POW);
 				//printf("А", field_letters[i][j]);
 
 				gotoxy(left + 8, top);
@@ -877,9 +1066,9 @@ int set_word(int column_active_idx, int line_active_idx) {
 			}
 		}
 
-		show_words_bank(left, top, btn_bg);
+		show_words_bank();
 
-		show_score(left, top, btn_bg);
+		show_score();
 		// Данные подготовлены, вывести на экран
 		con_draw_release();
 		while (!key_is_pressed()) // Если пользователь нажимает кнопку
@@ -1015,7 +1204,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 						for (n = 0; n < word_length; n++) {
 							if (line_active_idx - 1 == field_word[n][1] && column_active_idx == field_word[n][0]) flag = 1;//прошли уже эту клетку?
 						}
-						if (field_letters[column_active_idx][line_active_idx - 1] != '\0'){
+						if (field_letters[column_active_idx][line_active_idx - 1] != '\0') {
 							//Добавляем букву
 							if (flag != 1) {
 								line_active_idx--;
@@ -1028,7 +1217,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 								if (word_length > 1 && field_word[word_length - 2][1] == line_active_idx - 1) {
 									line_active_idx--;
 									word_length--;
-									memset(field_word[word_length], 6, 2*sizeof(char));
+									memset(field_word[word_length], 6, 2 * sizeof(char));
 								}
 							}
 						}
@@ -1055,7 +1244,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 					field_word[0][0] = column_active_idx;
 					field_word[0][1] = line_active_idx;
 				}
-				else 
+				else
 				{
 					//Проверка: входит ли поставленная буква в выделенное слово
 					flag = 0;
@@ -1094,7 +1283,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 								printf("|       ");
 
 								gotoxy(left + 4, top);
-								printf("%c", field_letters[i][j] - ALPHABET_POW);
+								field_letters[i][j] == '\0' ? printf("%c", field_letters[i][j]) : printf("%c", field_letters[i][j] - ALPHABET_POW);
 								//printf("А", field_letters[i][j]);
 
 								gotoxy(left + 8, top);
@@ -1108,9 +1297,9 @@ int set_word(int column_active_idx, int line_active_idx) {
 								printf("---------");
 							}
 						}
-						show_words_bank(left, top, btn_bg);
+						show_words_bank();
 
-						show_score(left, top, btn_bg);
+						show_score();
 						// Данные подготовлены, вывести на экран
 						con_draw_release();
 
@@ -1121,11 +1310,11 @@ int set_word(int column_active_idx, int line_active_idx) {
 						}
 						pause(100);
 					}
-					else 
+					else
 					{
 						//Проверка на наличие слова в словаре
 						FILE* file = fopen(DICT, "r+");
-						unsigned char str[31];
+						unsigned char str[MAX_WORD_LEN];
 						int flag_compare = 0;
 						while (!feof(file))
 						{
@@ -1148,10 +1337,16 @@ int set_word(int column_active_idx, int line_active_idx) {
 								}
 								if (flag_compare != 1) {
 									for (int i = 0; i < word_length; i++) {
-										words_bank[turn][i] = field_letters[field_word[i][0]][field_word[i][1]];
+										words_bank[words_bank_len][i] = field_letters[field_word[i][0]][field_word[i][1]];
 									}
 									words_bank_len += 1;
-									h_score += word_length;
+									if (game_mode == MODE_DUEL)
+										if (turn % 2 == 0)
+											h_score += word_length;
+										else
+											c_score += word_length;
+									else
+										h_score += word_length;
 									turn++;
 									return 0;
 								}
@@ -1170,10 +1365,10 @@ int set_word(int column_active_idx, int line_active_idx) {
 			else if (code == KEY_BACK) {
 				int pass_ac = pass_turn_window();
 				if (pass_ac == 1) {
+					turn++;
 					for (j = 0; j < MAX_WORD_LEN; j++) {
 						words_bank[turn][j] = '\0';
 					}
-					turn++;
 					words_bank_len++;
 					return 1;
 				}
@@ -1194,13 +1389,13 @@ int set_word(int column_active_idx, int line_active_idx) {
 
 	}
 }
-void show_score(int left, int top, int btn_bg) {
+void show_score() {
 	left = x_coord_field - 30;
 	top = y_coord_field - 3;
 	btn_bg = clr_bg;
 	con_set_color(clr_font, btn_bg);
 	gotoxy(left, top);
-	printf("%s", "Игрок   Компьютер");
+	printf("%s", "Игрок 1   Игрок 2");
 	left = x_coord_field - 28;
 	top++;
 	gotoxy(left, top);
@@ -1209,7 +1404,7 @@ void show_score(int left, int top, int btn_bg) {
 	printf("%d", c_score);
 }
 
-void show_end_game(int left, int top, int btn_bg) {
+void show_end_game() {
 	left = x_coord_menu;
 	top = y_coord_field;
 	btn_bg = clr_bg;
@@ -1218,11 +1413,11 @@ void show_end_game(int left, int top, int btn_bg) {
 	con_set_color(clr_font, btn_bg);
 	if (h_score > c_score) {
 		gotoxy(left + 1, top);
-		printf("%s", "Человечество победило");
+		printf("%s", "Игрок 1 победил!");
 	}
 	else if (h_score < c_score) {
 		gotoxy(left + 4, top);
-		printf("%s", "Машины победили");
+		printf("%s", "Игрок 2 победил!");
 	}
 	else {
 		gotoxy(left + 9, top);
@@ -1230,7 +1425,7 @@ void show_end_game(int left, int top, int btn_bg) {
 	}
 	top++;
 	gotoxy(left, top);
-	printf("%s", "Игрок         Компьютер");
+	printf("%s", "Игрок 1         Игрок 2");
 	left = x_coord_menu + 2;
 	top++;
 	gotoxy(left, top);
@@ -1241,7 +1436,7 @@ void show_end_game(int left, int top, int btn_bg) {
 	while (!key_is_pressed());
 }
 
-void show_words_bank(int left, int top, int btn_bg) {
+void show_words_bank() {
 	int top_player = y_coord_field - 3, top_computer = y_coord_field - 3;
 	for (int i = 0; i < words_bank_len; i++)
 	{
@@ -1254,7 +1449,7 @@ void show_words_bank(int left, int top, int btn_bg) {
 			top_player += 3;
 			top = top_player;
 		}
-		else{
+		else {
 			left = x_coord_field + 50 + 24;
 			top_computer += 3;
 			top = top_computer;
@@ -1281,7 +1476,7 @@ void show_words_bank(int left, int top, int btn_bg) {
 }
 void settings_menu()
 {
-	const char* menu_items[] = { "Настройки" ,"Сложность", "Первый ход", "Назад или ESC"};
+	const char* menu_items[] = { "Настройки" ,"Сложность", "Режим", "Первый ход", "Назад или ESC" };
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	/*short clr_bg = CON_CLR_BLACK;
@@ -1289,8 +1484,8 @@ void settings_menu()
 	short clr_font = CON_CLR_WHITE_LIGHT;*/
 	while (1)
 	{
-		int left = x_coord_menu;
-		int top = y_coord_field;
+		left = x_coord_menu;
+		top = y_coord_field;
 		int b;
 
 		// Заблокировать отрисовку
@@ -1305,14 +1500,14 @@ void settings_menu()
 			short btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
 			if (b == menu_active_idx)
 				btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
-			
+
 			gotoxy(left, top);
 			con_set_color(clr_font, btn_bg);
 
 			if (b == 0)
 				printf("~~~~~~~~~~~~~~~~~~~~");
 			else
-				printf("====================");			
+				printf("====================");
 			top++;
 			gotoxy(left, top);
 			printf("|                   ");
@@ -1328,7 +1523,7 @@ void settings_menu()
 			if (b == 0)
 				printf("~~~~~~~~~~~~~~~~~~~~");
 			else
-				printf("====================");			
+				printf("====================");
 			top += 2;
 		}
 
@@ -1339,7 +1534,7 @@ void settings_menu()
 		while (!key_is_pressed()) // Если пользователь нажимает кнопку
 		{
 			int code = key_pressed_code();
-			
+
 			if (code == 'w' || code == 'W' || code == (unsigned char)'ц' || code == (unsigned char)'Ц') // Если это стрелка вверх
 			{
 				// То переход к верхнему пункту (если это возможно)
@@ -1375,15 +1570,18 @@ void settings_menu()
 			}
 			else if (code == KEY_ENTER) // Нажата кнопка Enter
 			{
-				if (menu_active_idx == 3) // Выбран последний пункт - это выход
+				if (menu_active_idx == 4) // Выбран последний пункт - это выход
 					return;
+				if (menu_active_idx == 2) {
+					mode_selection();
+				}
 
 				if (menu_active_idx == 1)//Выбран пункт сложность
 					difficulty_selection();
 
-				if (menu_active_idx == 2)//Выбран пункт Первый ход
+				if (menu_active_idx == 3)//Выбран пункт Первый ход
 					first_turn_selection();
-				
+
 				break;
 			}
 
@@ -1404,8 +1602,8 @@ int surrender_window() {
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	while (1) {
-		int left = x_coord_menu;
-		int top = y_coord_field;
+		left = x_coord_menu;
+		top = y_coord_field;
 		int b;
 		int code;
 
@@ -1492,8 +1690,8 @@ int pass_turn_window() {
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	while (1) {
-		int left = x_coord_menu;
-		int top = y_coord_field;
+		left = x_coord_menu;
+		top = y_coord_field;
 		int b;
 		int code;
 
@@ -1577,7 +1775,7 @@ int pass_turn_window() {
 
 void difficulty_selection()
 {
-	char* menu_items[] = { "Сложность" ,"Лёгкая", "Средняя", "Сложная" ,"Назад или ESC"};
+	char* menu_items[] = { "Сложность", "Средняя", "Лёгкая", "Сложная" ,"Назад или ESC" };
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	//short clr_bg = CON_CLR_BLACK;
@@ -1586,8 +1784,8 @@ void difficulty_selection()
 	//short clr_bg_chosen = CON_CLR_RED_LIGHT;
 	while (1)
 	{
-		int left = x_coord_menu;
-		int top = y_coord_field;
+		left = x_coord_menu;
+		top = y_coord_field;
 		int b;
 
 		// Заблокировать отрисовку
@@ -1611,10 +1809,10 @@ void difficulty_selection()
 			if (b == 0)
 				printf("~~~~~~~~~~~~~~~~~~~~");
 			else
-				printf("====================");			
+				printf("====================");
 			top++;
 			if (b == difficult) {
-				gotoxy(left-4, top);
+				gotoxy(left - 4, top);
 				printf("--->|                   ");
 			}
 			else {
@@ -1687,11 +1885,11 @@ void difficulty_selection()
 				if (menu_active_idx == 4) // Выбран последний пункт - это выход
 					return;
 
-				if (menu_active_idx == 1)//Лёгкая сложность
-					difficult = 1;
-
-				if (menu_active_idx == 2)//Средняя сложность
+				if (menu_active_idx == 2)//Лёгкая сложность
 					difficult = 2;
+
+				if (menu_active_idx == 1)//Средняя сложность
+					difficult = 1;
 
 				if (menu_active_idx == 3)//Сложная
 					difficult = 3;
@@ -1711,7 +1909,7 @@ void difficulty_selection()
 }
 
 void first_turn_selection() {
-	const char* menu_items[] = { "Право первого хода" ,"Человек", "Компьютер" ,"Назад или ESC" };
+	const char* menu_items[] = { "Право первого хода" ,"Игрок 1", "Игрок 2" ,"Назад или ESC" };
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	//short clr_bg = CON_CLR_BLACK;
@@ -1719,8 +1917,8 @@ void first_turn_selection() {
 	//short clr_font = CON_CLR_WHITE_LIGHT;
 	while (1)
 	{
-		int left = x_coord_menu;
-		int top = y_coord_field;
+		left = x_coord_menu;
+		top = y_coord_field;
 		int b;
 
 		// Заблокировать отрисовку
@@ -1764,7 +1962,7 @@ void first_turn_selection() {
 				printf("|");
 			}
 			top++;
-			gotoxy(left, top); 
+			gotoxy(left, top);
 			if (b == 0)
 				printf("~~~~~~~~~~~~~~~~~~~~");
 			else
