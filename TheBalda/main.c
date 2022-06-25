@@ -54,7 +54,7 @@ void show_score();
 void show_words_bank();
 int set_word(int column_active_idx, int line_active_idx);
 int search_letter(char letter, NODE* node);
-void show_end_game();
+void show_end_game(int is_sur);
 
 char game_mode = MODE_VS_ROBOT;
 char found = 0;
@@ -62,8 +62,8 @@ NODE* root_dict;
 NODE* root_inv;
 unsigned char* longest_word[MAX_WORD_LEN] = { '\0' };
 int difficult = 1; //сложность изначально "лёгкий"
-int turn = 0, turn_test = 1;
-char words_bank[MAX_WORDS_COUNT][MAX_WORD_LEN];
+int start_turn = 1, turn = 0, turn_test = 1;
+unsigned char words_bank[MAX_WORDS_COUNT][MAX_WORD_LEN];
 int words_bank_len = 0;
 int h_score, c_score;
 char field_for_search[5][5] = { {1} }; // Нужно для отметок уже отработанных клеток для хода ИИ
@@ -725,7 +725,8 @@ void set_letter() {
 			field_letters[i][j] = '\0';
 		}
 	}
-
+	if (start_turn == 1)turn = 1;
+	else turn = 0;
 	//Случайнок слово в начале
 	FILE* five_file;
 	char five_word[7];
@@ -963,7 +964,7 @@ void set_letter() {
 			{
 				int sur_ac = surrender_window();
 				if (sur_ac == 1) {
-					show_end_game();
+					show_end_game(1);
 					for (i = 0; i < words_bank_len; i++) {
 						for (j = 0; j < MAX_WORD_LEN; j++) {
 							words_bank[i][j] = '\0';
@@ -994,7 +995,7 @@ int check_end_game() {
 		}
 	}
 	if (count == 25) {
-		show_end_game();
+		show_end_game(0);
 		for (int i = 0; i < words_bank_len; i++) {
 			for (int j = 0; j < MAX_WORD_LEN; j++) {
 				words_bank[i][j] = '\0';
@@ -1333,6 +1334,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 									}
 									if (compare_idx == word_length && words_bank[i][compare_idx] == '\0') {
 										flag_compare = 1;
+										break;
 									}
 								}
 								if (flag_compare != 1) {
@@ -1341,7 +1343,7 @@ int set_word(int column_active_idx, int line_active_idx) {
 									}
 									words_bank_len += 1;
 									if (game_mode == MODE_DUEL)
-										if (turn % 2 == 0)
+										if (turn % 2 != 0)
 											h_score += word_length;
 										else
 											c_score += word_length;
@@ -1404,18 +1406,18 @@ void show_score() {
 	printf("%d", c_score);
 }
 
-void show_end_game() {
+void show_end_game(int is_sur) {
 	left = x_coord_menu;
 	top = y_coord_field;
 	btn_bg = clr_bg;
 	con_draw_lock();
 	clrscr();
 	con_set_color(clr_font, btn_bg);
-	if (h_score > c_score) {
+	if (is_sur == 1 && turn % 2 == 0 || h_score > c_score) {
 		gotoxy(left + 1, top);
 		printf("%s", "Игрок 1 победил!");
 	}
-	else if (h_score < c_score) {
+	else if (is_sur == 1 && turn % 2 == 1 || h_score < c_score) {
 		gotoxy(left + 4, top);
 		printf("%s", "Игрок 2 победил!");
 	}
@@ -1437,7 +1439,14 @@ void show_end_game() {
 }
 
 void show_words_bank() {
-	int top_player = y_coord_field - 3, top_computer = y_coord_field - 3;
+	int top_player = y_coord_field - 2, top_computer = y_coord_field - 2;
+	left = x_coord_field + 50;
+	top = y_coord_field;
+	gotoxy(left, top);
+	if (start_turn == 1)
+		printf("        Игрок 1                 Игрок 2");
+	else
+		printf("        Игрок 2                 Игрок 1");
 	for (int i = 0; i < words_bank_len; i++)
 	{
 		if (i == 0) {
@@ -1941,7 +1950,7 @@ void first_turn_selection() {
 			else
 				printf("====================");
 			top++;
-			if (b == turn) {
+			if (b == start_turn) {
 				gotoxy(left - 4, top);
 				printf("--->|                   ");
 			}
@@ -1953,7 +1962,7 @@ void first_turn_selection() {
 			gotoxy(left + 10 - strlen(menu_items[b]) / 2, top);
 			printf("%s", menu_items[b]);
 			con_set_color(clr_font, btn_bg);
-			if (b == turn) {
+			if (b == start_turn) {
 				gotoxy(left + 19, top);
 				printf("|<---");
 			}
@@ -2016,10 +2025,10 @@ void first_turn_selection() {
 					return;
 
 				if (menu_active_idx == 1)//Человек ходит первым
-					turn = 1;
+					start_turn = 1;
 
 				if (menu_active_idx == 2)//Компьютер ходит первым
-					turn = 2;
+					start_turn = 2;
 
 				break;
 			}
