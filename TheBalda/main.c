@@ -1413,11 +1413,19 @@ void show_end_game(int is_sur) {
 	con_draw_lock();
 	clrscr();
 	con_set_color(clr_font, btn_bg);
-	if (is_sur == 1 && turn % 2 == 0 || h_score > c_score) {
+	if (is_sur == 1 && turn % 2 == 0) {
 		gotoxy(left + 1, top);
 		printf("%s", "Игрок 1 победил!");
 	}
-	else if (is_sur == 1 && turn % 2 == 1 || h_score < c_score) {
+	else if (is_sur == 1 && turn % 2 == 1) {
+		gotoxy(left + 4, top);
+		printf("%s", "Игрок 2 победил!");
+	}
+	else if (h_score > c_score) {
+		gotoxy(left + 1, top);
+		printf("%s", "Игрок 1 победил!");
+	}
+	else if (h_score < c_score) {
 		gotoxy(left + 4, top);
 		printf("%s", "Игрок 2 победил!");
 	}
