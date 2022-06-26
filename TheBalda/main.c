@@ -67,6 +67,7 @@ void reverse_word(unsigned char*);
 NODE* inv_to_dict_node(unsigned char*);
 void search_inv_tree(int, int, unsigned char*, int);
 int check_end_game();
+void end_game();
 int set_word(int, int);
 void init_inv_tree();
 void init_dict_tree();
@@ -437,7 +438,9 @@ int bot_move() {
 	}
 
 	if (max_len == 0 && cell_count != 0) {
-		printf("Слит ботяра");
+		//printf("Слит ботяра");
+		show_end_game(0);
+		end_game();
 		return 1;
 	}
 	else {
@@ -1023,13 +1026,7 @@ void set_letter() {
 				int sur_ac = surrender_window();
 				if (sur_ac == 1) {
 					show_end_game(1);
-					for (i = 0; i < words_bank_len; i++) {
-						for (j = 0; j < MAX_WORD_LEN; j++) {
-							words_bank[i][j] = '\0';
-						}
-					}
-					score.first_player = 0, score.second_player = 0;
-					turn = 0;
+					end_game();
 					return;
 				}
 				if (ask_for_save()) {
@@ -1059,13 +1056,7 @@ int check_end_game() {
 	}
 	if (count == 25) {
 		show_end_game(0);
-		for (int i = 0; i < words_bank_len; i++) {
-			for (int j = 0; j < MAX_WORD_LEN; j++) {
-				words_bank[i][j] = '\0';
-			}
-		}
-		score.first_player = 0, score.second_player = 0;
-		turn = 0;
+		end_game();
 		return 1;
 	}
 }
@@ -1477,25 +1468,29 @@ void show_end_game(int is_sur) {
 	con_draw_lock();
 	clrscr();
 	con_set_color(clr_font, btn_bg);
-	if (is_sur == 1 && turn % 2 == 0) {
-		gotoxy(corners.left + 1, corners.top);
-		printf("%s", "Игрок 1 победил!");
+	if (is_sur == 1) {
+		if (turn % 2 == 0) {
+			gotoxy(corners.left + 1, corners.top);
+			printf("%s", "Игрок 1 победил!");
+		}
+		else {
+			gotoxy(corners.left + 4, corners.top);
+			printf("%s", "Игрок 2 победил!");
+		}
 	}
-	else if (is_sur == 1 && turn % 2 == 1) {
-		gotoxy(corners.left + 4, corners.top);
-		printf("%s", "Игрок 2 победил!");
-	}
-	else if (score.first_player > score.second_player) {
-		gotoxy(corners.left + 1, corners.top);
-		printf("%s", "Игрок 1 победил!");
-	}
-	else if (score.first_player < score.second_player) {
-		gotoxy(corners.left + 4, corners.top);
-		printf("%s", "Игрок 2 победил!");
-	}
-	else {
-		gotoxy(corners.left + 9, corners.top);
-		printf("%s", "Ничья");
+	if (is_sur == 0) {
+		if (score.first_player > score.second_player) {
+			gotoxy(corners.left + 1, corners.top);
+			printf("%s", "Игрок 1 победил!");
+		}
+		else if (score.first_player < score.second_player) {
+			gotoxy(corners.left + 4, corners.top);
+			printf("%s", "Игрок 2 победил!");
+		}
+		else {
+			gotoxy(corners.left + 9, corners.top);
+			printf("%s", "Ничья");
+		}
 	}
 	corners.top++;
 	gotoxy(corners.left, corners.top);
@@ -1508,6 +1503,21 @@ void show_end_game(int is_sur) {
 	printf("%d", score.second_player);
 	con_draw_release();
 	while (!key_is_pressed());
+}
+
+void end_game() {
+	for (int i = 0; i < words_bank_len; i++) {
+		for (int j = 0; j < MAX_WORD_LEN; j++) {
+			words_bank[i][j] = '\0';
+		}
+	}
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 5; j++) {
+			field_letters[i][j] = '\0';
+		}
+	}
+	score.first_player = 0, score.second_player = 0;
+	turn = 0;
 }
 
 void show_words_bank() {
