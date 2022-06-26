@@ -40,9 +40,6 @@ typedef struct node {
 	char* word;
 }NODE;
 
-//void demo_animation();
-//void demo_colors();
-//void demo_input();
 void main_menu();
 void about();
 void settings_menu();
@@ -55,6 +52,9 @@ void show_words_bank();
 int set_word(int column_active_idx, int line_active_idx);
 int search_letter(char letter, NODE* node);
 void show_end_game(int is_sur);
+
+struct roots{
+};
 
 char game_mode = MODE_VS_ROBOT;
 char found = 0;
