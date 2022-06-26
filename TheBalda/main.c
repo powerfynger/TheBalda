@@ -12,6 +12,7 @@
 #define  INV					"inv.txt"
 #define  DICT					"dict.txt"
 #define  START_WORDS			"start_words.txt"
+#define  SAVE_FILE				"save.txt"
 #define	 ALPHABET_POW			32
 #define  MAX_WORD_LEN			30
 #define  MAX_WORDS_COUNT		21
@@ -24,10 +25,6 @@
 #define  x_coord_field          80
 #define  y_coord_field          5
 #define  x_coord_menu           x_coord_field + 14
-//#define  MODE_DUEL				1
-//#define  MODE_VS_ROBOT			2
-//#define  MODE_DZEN				3
-
 
 /*Структура узла словарного и инвертированного префиксных деревьев*/
 typedef struct node {
@@ -76,8 +73,10 @@ void init_dict_tree();
 void search_dict_tree(int, int, NODE*, unsigned char*);
 int set_word(int, int);
 int get_letter_index(unsigned char, NODE*);
-
-
+void save_progress();
+void load_progress();
+int ask_for_save();
+int ask_for_load();
 
 
 
@@ -509,7 +508,7 @@ int main()
 // Поддержка главного меню
 void main_menu()
 {
-	const char* menu_items[] = { "Балда" ,"Игра", "Настройки", "Таблица рекордов", "О программе", "Выход" };
+	const char* menu_items[] = { "Балда" ,"Игра", "Настройки", "О программе", "Выход" };
 	int menu_active_idx = 1;
 	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
 	/*short clr_bg = CON_CLR_BLACK;
@@ -597,21 +596,28 @@ void main_menu()
 			else if (code == KEY_ESC || code == 'q' || code == 'Q' ||
 				code == (unsigned char)'й' || code == (unsigned char)'Й') // ESC или 'q' - выход
 			{
+				if (ask_for_save()) {
+					save_progress();
+				}
 				return;
 			}
 			else if (code == KEY_ENTER) // Нажата кнопка Enter
 			{
-				if (menu_active_idx == 5) // Выбран последний пункт - это выход
-					return;
-
+				if (menu_active_idx == 4) { // Выбран последний пункт - это выход
+					if (ask_for_save()) {
+						save_progress();
+						return;
+					}
+				}
 				//if (menu_active_idx == 0)
 
 				if (menu_active_idx == 2) // Выбран пункт "настройки"
 					settings_menu();
-				if (menu_active_idx == 1)
+				if (menu_active_idx == 1) {
 					set_letter();
+				}
 				//if (menu_active_idx == 3)
-				if (menu_active_idx == 4)
+				if (menu_active_idx == 3)
 					about();
 
 				break;
@@ -767,47 +773,52 @@ void mode_selection() {
 void set_letter() {
 	int i, j;
 	int is_word;
-	for (i = 0; i < 5; i++) {
-		for (j = 0; j < 5; j++) {
-			field_letters[i][j] = '\0';
-		}
+	if (ask_for_load()) {
+		load_progress();
 	}
-	if (start_turn == 1)turn = 1;
-	else turn = 0;
-	//Случайнок слово в начале
-	FILE* five_file;
-	char five_word[7];
-	five_file = fopen(START_WORDS, "r");
-	srand(time(NULL));
-	int r = rand() % five_count;
-	system("cls");
-	for (i = 1; i != r; i++) fgets(five_word, 7, five_file);
-	field_letters[2][0] = five_word[0];
-	field_letters[2][1] = five_word[1];
-	field_letters[2][2] = five_word[2];
-	field_letters[2][3] = five_word[3];
-	field_letters[2][4] = five_word[4];
-	words_bank[0][0] = five_word[0];
-	words_bank[0][1] = five_word[1];
-	words_bank[0][2] = five_word[2];
-	words_bank[0][3] = five_word[3];
-	words_bank[0][4] = five_word[4];
-	words_bank[0][5] = '\0';
-	words_bank_len = 1;
-	/*field_letters[2][0] = 'ж';
-	field_letters[2][1] = 'у';
-	field_letters[2][2] = 'ч';
-	field_letters[2][3] = 'о';
-	field_letters[2][4] = 'к';
-	words_bank[0][0] = 'ж';
-	words_bank[0][1] = 'у';
-	words_bank[0][2] = 'ч';
-	words_bank[0][3] = 'о';
-	words_bank[0][4] = 'к';
-	words_bank[0][5] = '\0';
-	words_bank_len = 1;*/
-	fclose(five_file);
 
+	if (field_letters[2][0] == '\0'){
+		for (i = 0; i < 5; i++) {
+			for (j = 0; j < 5; j++) {
+				field_letters[i][j] = '\0';
+			}
+		}
+		if (start_turn == 1)turn = 1;
+		else turn = 0;
+		//Случайнок слово в начале
+		FILE* five_file;
+		char five_word[7];
+		five_file = fopen(START_WORDS, "r");
+		srand(time(NULL));
+		int r = rand() % five_count;
+		system("cls");
+		for (i = 1; i != r; i++) fgets(five_word, 7, five_file);
+		field_letters[2][0] = five_word[0];
+		field_letters[2][1] = five_word[1];
+		field_letters[2][2] = five_word[2];
+		field_letters[2][3] = five_word[3];
+		field_letters[2][4] = five_word[4];
+		words_bank[0][0] = five_word[0];
+		words_bank[0][1] = five_word[1];
+		words_bank[0][2] = five_word[2];
+		words_bank[0][3] = five_word[3];
+		words_bank[0][4] = five_word[4];
+		words_bank[0][5] = '\0';
+		words_bank_len = 1;
+		/*field_letters[2][0] = 'ж';
+		field_letters[2][1] = 'у';
+		field_letters[2][2] = 'ч';
+		field_letters[2][3] = 'о';
+		field_letters[2][4] = 'к';
+		words_bank[0][0] = 'ж';
+		words_bank[0][1] = 'у';
+		words_bank[0][2] = 'ч';
+		words_bank[0][3] = 'о';
+		words_bank[0][4] = 'к';
+		words_bank[0][5] = '\0';
+		words_bank_len = 1;*/
+		fclose(five_file);
+	}
 	int column_active_idx = 0;
 	int line_active_idx = 0;
 	int field_letters_column_count = 5;
@@ -1019,6 +1030,10 @@ void set_letter() {
 					}
 					score.first_player = 0, score.second_player = 0;
 					turn = 0;
+					return;
+				}
+				if (ask_for_save()) {
+					save_progress();
 					return;
 				}
 				break;
@@ -2112,11 +2127,252 @@ void about() {
 
 	con_set_color(CON_CLR_GRAY, CON_CLR_BLACK);
 	gotoxy(8, 3);
-	printf("Что-то очём-то.\n\n");
+	printf("Очередная реализованная на языке Си игра балда)\n\n");
 
 	gotoxy(8, 4);
 	printf("Для продолжения нажмите любую клавишу.");
 
 	key_pressed_code();
 	return;
+}
+
+int ask_for_save() {
+	const char* menu_items[] = { "Да", "Нет" };
+	int menu_active_idx = 1;
+	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
+	while (1) {
+		corners.left = x_coord_menu;
+		corners.top = y_coord_field;
+		int b;
+		int code;
+
+		// Заблокировать отрисовку
+		con_draw_lock();
+
+		// Очистка экрана
+		con_set_color(clr_font, clr_bg);
+		clrscr();
+		// Цикл отрисовывает кнопку
+		short btn_bg = clr_bg;
+		gotoxy(corners.left, corners.top);
+		printf("Хотите сохранить прогресс и выйти?");
+		corners.top += 2;
+		for (b = 0; b < 2; b++)
+		{
+			btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
+			if (b == menu_active_idx)
+				btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
+			gotoxy(corners.left, corners.top);
+			con_set_color(clr_font, btn_bg);
+			printf("%s", menu_items[b]);
+			corners.left += 3;
+		}
+		con_draw_release();
+
+		while (!key_is_pressed()) // Если пользователь нажимает кнопку
+		{
+			code = key_pressed_code();
+			if (code == 'a' || code == 'A' || code == (unsigned char)'ф' || code == (unsigned char)'Ф')
+			{
+				if (menu_active_idx > 0)
+				{
+					menu_active_idx--;
+					break;
+				}
+				else
+				{
+					menu_active_idx = 1;
+					break;
+				}
+			}
+			else if (code == 'd' || code == 'D' || code == (unsigned char)'в' || code == (unsigned char)'В')
+			{
+				if (menu_active_idx < 1)
+				{
+					menu_active_idx++;
+					break;
+				}
+				else
+				{
+					menu_active_idx = 0;
+					break;
+				}
+			}
+			else if (code == KEY_ESC || code == 'q' || code == 'Q' ||
+				code == (unsigned char)'й' || code == (unsigned char)'Й') // ESC или 'q' - выход
+			{
+				return 0;
+			}
+			else if (code == KEY_ENTER) // Нажата кнопка Enter
+			{
+				if (menu_active_idx == 1) // Выбран первый пункт - это выход
+					return 0;
+
+				if (menu_active_idx == 0)// Выбран второй пункт - это выход
+					return 1;
+			}
+
+
+			pause(40); // Небольная пауза (чтобы не загружать процессор)
+		} // while (!key_is_pressed())
+
+
+		// "Съедается" оставшийся ввод
+		while (key_is_pressed())
+			key_pressed_code();
+
+	}
+}
+
+int ask_for_load() {
+	const char* menu_items[] = { "Да", "Нет" };
+	int menu_active_idx = 1;
+	int menu_items_count = sizeof(menu_items) / sizeof(menu_items[0]);
+	while (1) {
+		corners.left = x_coord_menu;
+		corners.top = y_coord_field;
+		int b;
+		int code;
+
+		// Заблокировать отрисовку
+		con_draw_lock();
+
+		// Очистка экрана
+		con_set_color(clr_font, clr_bg);
+		clrscr();
+		// Цикл отрисовывает кнопку
+		short btn_bg = clr_bg;
+		gotoxy(corners.left, corners.top);
+		printf("Хотите загрузить прошлую игру?");
+		corners.top += 2;
+		for (b = 0; b < 2; b++)
+		{
+			btn_bg = clr_bg; // По умолчанию фон кнопки - как фон экрана
+			if (b == menu_active_idx)
+				btn_bg = clr_bg_active; // Если кнопка активна - то рисуется другим цветом
+			gotoxy(corners.left, corners.top);
+			con_set_color(clr_font, btn_bg);
+			printf("%s", menu_items[b]);
+			corners.left += 3;
+		}
+		con_draw_release();
+
+		while (!key_is_pressed()) // Если пользователь нажимает кнопку
+		{
+			code = key_pressed_code();
+			if (code == 'a' || code == 'A' || code == (unsigned char)'ф' || code == (unsigned char)'Ф')
+			{
+				if (menu_active_idx > 0)
+				{
+					menu_active_idx--;
+					break;
+				}
+				else
+				{
+					menu_active_idx = 1;
+					break;
+				}
+			}
+			else if (code == 'd' || code == 'D' || code == (unsigned char)'в' || code == (unsigned char)'В')
+			{
+				if (menu_active_idx < 1)
+				{
+					menu_active_idx++;
+					break;
+				}
+				else
+				{
+					menu_active_idx = 0;
+					break;
+				}
+			}
+			else if (code == KEY_ESC || code == 'q' || code == 'Q' ||
+				code == (unsigned char)'й' || code == (unsigned char)'Й') // ESC или 'q' - выход
+			{
+				return 0;
+			}
+			else if (code == KEY_ENTER) // Нажата кнопка Enter
+			{
+				if (menu_active_idx == 1) // Выбран первый пункт - это выход
+					return 0;
+
+				if (menu_active_idx == 0)// Выбран второй пункт - это выход
+					return 1;
+			}
+
+
+			pause(40); // Небольная пауза (чтобы не загружать процессор)
+		} // while (!key_is_pressed())
+
+
+		// "Съедается" оставшийся ввод
+		while (key_is_pressed())
+			key_pressed_code();
+
+	}
+}
+
+void save_progress() {
+	FILE* file = NULL;
+	fopen_s(&file, SAVE_FILE, "w");
+	if (file != NULL) {
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 5; j++) {
+				fputc(field_letters[i][j], file);
+				fputc('\n', file);
+			}
+		}
+		fputc(turn, file);
+		fputc('\n', file);
+		fputc(score.first_player, file);
+		fputc('\n', file);
+		fputc(score.second_player, file);
+		fputc('\n', file);
+		fputc(difficult, file);
+		fputc('\n', file);
+		fputc(game_mode, file);
+		fputc('\n', file);
+		for (int i = 0; i < MAX_WORDS_COUNT; i++) {
+			for (int j = 0; j < MAX_WORD_LEN; j++) {
+				fputc(words_bank[i][j], file);
+				fputc('\n', file);
+			}
+		}
+		fputc(words_bank_len, file);
+		fputc('\n', file);
+	}
+}
+
+void load_progress() {
+	FILE* file = NULL;
+	fopen_s(&file, SAVE_FILE, "r");
+	if (file != NULL) {
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 5; j++) {
+				field_letters[i][j] = fgetc(file);
+				fgetc(file);
+			}
+		}
+		turn = fgetc(file);
+		fgetc(file);
+		score.first_player = fgetc(file);
+		fgetc(file);
+		score.second_player = fgetc(file);
+		fgetc(file);
+		difficult = fgetc(file);
+		fgetc(file);
+		game_mode = fgetc(file);
+		fgetc(file);
+		for (int i = 0; i < MAX_WORDS_COUNT; i++) {
+			for (int j = 0; j < MAX_WORD_LEN; j++) {
+				words_bank[i][j] = fgetc(file);
+				fgetc(file);
+			}
+		}
+		words_bank_len = fgetc(file);
+		fgetc(file);
+	}
+	else {
+		return;
+	}
 }
