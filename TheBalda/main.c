@@ -230,7 +230,7 @@ void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
 	// Проверяем все смежные клетки
 	//Верхняя клетка
 	res = get_letter_index(field_letters[x - 1][y], node);
-	if (field_letters[x - 1][y] != '\0' && field_for_search[x - 1][y] != 1 && res != -1) {
+	if (field_letters[x - 1][y] != '\0' && field_for_search[x - 1][y] != 1 && res != -1 && x > 0) {
 		curr_word[strlen(curr_word)] = field_letters[x - 1][y];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x - 1, y, node->next[res], curr_word);
@@ -239,7 +239,7 @@ void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
 	}
 	// Правая клетка
 	res = get_letter_index(field_letters[x][y + 1], node);
-	if (field_letters[x][y + 1] != '\0' && field_for_search[x][y + 1] != 1 && res != -1) {
+	if (field_letters[x][y + 1] != '\0' && field_for_search[x][y + 1] != 1 && res != -1 && y < 4) {
 		curr_word[strlen(curr_word)] = field_letters[x][y + 1];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x, y + 1, node->next[res], curr_word);
@@ -248,7 +248,7 @@ void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
 	}
 	// Нижняя клетка
 	res = get_letter_index(field_letters[x + 1][y], node);
-	if (field_letters[x + 1][y] != '\0' && field_for_search[x + 1][y] != 1 && res != -1) {
+	if (field_letters[x + 1][y] != '\0' && field_for_search[x + 1][y] != 1 && res != -1 && x < 4) {
 		curr_word[strlen(curr_word)] = field_letters[x + 1][y];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x + 1, y, node->next[res], curr_word);
@@ -259,7 +259,7 @@ void search_dict_tree(int x, int y, NODE* node, unsigned char* curr_word) {
 
 	// Левая клетка
 	res = get_letter_index(field_letters[x][y - 1], node);
-	if (field_letters[x][y - 1] != '\0' && field_for_search[x][y - 1] != 1 && res != -1) {
+	if (field_letters[x][y - 1] != '\0' && field_for_search[x][y - 1] != 1 && res != -1 && y > 0) {
 		curr_word[strlen(curr_word)] = field_letters[x][y - 1];
 		curr_word[strlen(curr_word)] = '\0';
 		search_dict_tree(x, y - 1, node->next[res], curr_word);
