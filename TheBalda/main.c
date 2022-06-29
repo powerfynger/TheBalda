@@ -1,4 +1,3 @@
-﻿/* Список возможных улучншений */
 
 #define _CRT_SECURE_NO_WARNINGS
 #include "wincon.h"
@@ -95,18 +94,18 @@ enum modes {
 	DZEN = 3
 } game_modes;
 
-struct roots{
+struct roots {
 	NODE* dict;
 	NODE* inv;
 } roots;
 
-struct scores{
+struct scores {
 	int first_player;
 	int second_player;
 
 } score;
 
-struct start_letter_cords{
+struct start_letter_cords {
 	int x;
 	int y;
 } start_cords;
@@ -346,7 +345,7 @@ NODE* inv_to_dict_node(unsigned char* word) {
 	return node;
 }
 
-/*Основная функция поиска*/
+/*Основная функция поиска в инв дереве*/
 void search_inv_tree(int x, int y, unsigned char* curr_word, int end_ind) {
 	if (field_letters[x][y] == '\0' || x < 0 || y < 0 || x >= 5 || y >= 5) {
 		return;
@@ -518,7 +517,7 @@ void main_menu()
 	short clr_bg_active = CON_CLR_RED;
 	short clr_font = CON_CLR_WHITE_LIGHT;*/
 	corners.left = x_coord_menu;
-	 corners.top = y_coord_field;
+	corners.top = y_coord_field;
 	int b;
 	while (1)
 	{
@@ -780,7 +779,7 @@ void set_letter() {
 		load_progress();
 	}
 
-	if (field_letters[2][0] == '\0'){
+	if (field_letters[2][0] == '\0') {
 		for (i = 0; i < 5; i++) {
 			for (j = 0; j < 5; j++) {
 				field_letters[i][j] = '\0';
