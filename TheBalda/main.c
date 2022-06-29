@@ -829,6 +829,11 @@ void set_letter() {
 	while (1)
 	{
 		if (check_end_game() == 1) return;
+		if ((start_turn == 1 && turn >= 4 || start_turn == 2 && turn >= 3) && words_bank[turn][0] == '\0' && words_bank[turn - 1][0] == '\0' && words_bank[turn - 2][0] == '\0') {
+			show_end_game(0);
+			end_game();
+			return;
+		}
 		if (turn % 2 == 0 && game_mode == VS_ROBOT) {
 			bot_move();
 			memset(longest_word, 0, sizeof(longest_word));
